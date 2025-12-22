@@ -1,0 +1,274 @@
+:root {
+  --font-main: 'Outfit', sans-serif;
+  --font-display: 'Impact', sans-serif;
+  --color-bg-dark: #0a0a0a;
+  --color-bg-card: #1a1a1a;
+  --color-text-main: #ffffff;
+  --color-text-muted: #888888;
+  --color-accent-green: #00ffaa;
+  --color-accent-blue: #00aaff;
+  --color-rarity-common: #b0b0b0;
+  --color-rarity-legendary: #bf00ff;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-main);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  background: linear-gradient(to right, #ffcc00, #ff4400);
+  -webkit-background-clip: text;
+  color: transparent;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  padding-right: 15px;
+  /* Prevent last letter clipping */
+  line-height: 1.1;
+  /* Ensure height for ascenders/descenders */
+}
+
+.subtitle {
+  color: var(--color-accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.section-line {
+  flex-grow: 1;
+  height: 1px;
+  background-color: #333;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 0 20px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.offer-card {
+  background-color: var(--color-bg-card);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 520px;
+  /* Ensure sufficient height for alignment */
+}
+
+.offer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.card-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.icon-frame {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  border-radius: 16px;
+  background-color: #111;
+  border: 2px solid #333;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.icon-frame.legendary {
+  border-color: #aa00ff;
+  box-shadow: 0 0 10px rgba(170, 0, 255, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  background: radial-gradient(circle, #3a005c 0%, #1a1a1a 100%);
+}
+
+.icon-frame img.weapon-img {
+  max-width: 90%;
+  max-height: 90%;
+  z-index: 2;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  min-height: 3rem;
+  /* Enforce height for 2 lines */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 15px;
+  /* Increased from 10px for spacing */
+  min-height: 1.2rem;
+  /* Enforce height for 1 line */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-stats {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+  padding: 4px 0;
+}
+
+.price-tag {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  text-align: center;
+  padding: 8px;
+  font-weight: bold;
+  color: #ffcc00;
+  margin-top: auto;
+}
+
+.dates {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.legendary-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(45deg, var(--color-rarity-legendary), #aa00ff);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.legendary-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 500%;
+  height: 500%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 1;
+  animation: spin 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.berserker-dec {
+  position: absolute;
+  top: calc(100vh - 560px);
+  /* Aligns bottom of image to bottom of initial viewport */
+  right: 0;
+  width: 500px;
+  height: auto;
+  z-index: -1;
+  pointer-events: none;
+  /* Fade out the bottom of the image so it doesn't look cut off as you scroll */
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+}
+
+@media (max-width: 768px) {
+  .berserker-dec {
+    display: none;
+  }
+}
