@@ -6,12 +6,10 @@ import ShopTimer from './components/ShopTimer';
 import './index.css';
 import './HeroFilter.css';
 import ModifierFilter from './components/ModifierFilter';
-import ChestSimulator from './components/ChestSimulator';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
-  const [showChestSim, setShowChestSim] = useState(false);
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
   const [modifierOptions, setModifierOptions] = useState([]);
@@ -232,21 +230,8 @@ function App() {
         onChange={setSelectedModifiers}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '40px' }}>
-        <button
-          className="hero-btn active"
-          style={{ padding: '15px 30px', fontSize: '1.2rem', boxShadow: '0 0 15px rgba(255, 204, 0, 0.4)' }}
-          onClick={() => setShowChestSim(true)}
-        >
-          🎲 TRY YOUR LUCK (Open Chest) 🎲
-        </button>
-      </div>
 
       <div className="container">
-        {showChestSim && rawJson && (
-          <ChestSimulator rawData={rawJson} onClose={() => setShowChestSim(false)} />
-        )}
-
         {/* Live Section */}
         <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="section-header">
@@ -328,7 +313,7 @@ function App() {
         alt=""
         className="berserker-dec"
       />
-    </div>
+    </div >
   );
 }
 
