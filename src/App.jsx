@@ -247,7 +247,13 @@ function App() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+      <ModifierFilter
+        options={modifierOptions}
+        selected={selectedModifiers}
+        onChange={setSelectedModifiers}
+      />
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', marginTop: '20px' }}>
         <button
           className={`hero-btn ${sortByPopularity ? 'active' : ''}`}
           onClick={() => setSortByPopularity(!sortByPopularity)}
@@ -260,12 +266,6 @@ function App() {
           {sortByPopularity ? '❤️ Sorted by Most Liked' : 'Sort by Most Liked'}
         </button>
       </div>
-
-      <ModifierFilter
-        options={modifierOptions}
-        selected={selectedModifiers}
-        onChange={setSelectedModifiers}
-      />
 
 
 
