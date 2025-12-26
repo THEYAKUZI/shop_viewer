@@ -63,7 +63,6 @@ header {
 .header-title {
     font-family: var(--font-display);
     font-size: 4rem;
-    font-size: 4rem;
     background: linear-gradient(to right, var(--color-theme-primary), var(--color-theme-secondary));
     -webkit-background-clip: text;
     color: transparent;

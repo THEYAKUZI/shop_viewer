@@ -202,21 +202,7 @@ function App() {
     root.style.setProperty('--color-theme-glow', theme.glow);
   }, [selectedHero]);
 
-  // Determine decoration image based on hero
-  const getDecorationImage = () => {
-    if (selectedHero) {
-      // Try to map hero name to svg file if exists, else fallback
-      const map = {
-        'Berserker': 'berserker.svg',
-        // Add others if we have SVGs, otherwise fallback or hide
-      };
-      return map[selectedHero.name] || 'berserker.svg';
-    }
-    return 'berserker.svg';
-  };
-
   const filteredData = getFilteredData();
-  const decorationImage = getDecorationImage();
 
   return (
     <div className="main-wrapper">
@@ -339,7 +325,7 @@ function App() {
         </div>
       </div>
       <img
-        src={`icons/${decorationImage}`}
+        src="icons/berserker.svg"
         alt=""
         className="berserker-dec"
       />
