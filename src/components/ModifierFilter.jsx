@@ -29,6 +29,14 @@ const ModifierFilter = ({ options, selected, onChange }) => {
                         className={`mod-btn ${opt.isLegendary ? 'legendary' : ''} ${selected.includes(opt.value) ? 'active' : ''}`}
                         onClick={() => toggleOption(opt)}
                     >
+                        {opt.iconName && (
+                            <img
+                                src={`icons/${opt.iconName}.png`}
+                                alt=""
+                                className="mod-icon"
+                                onError={(e) => { e.target.style.display = 'none' }}
+                            />
+                        )}
                         {opt.label}
                     </button>
                 ))}

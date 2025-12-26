@@ -35,6 +35,16 @@
     text-transform: capitalize;
     transition: all 0.2s;
     user-select: none;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mod-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
 }
 
 .mod-btn:hover {

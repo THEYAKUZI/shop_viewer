@@ -41,14 +41,14 @@ function App() {
           if (mod.isLegendary) {
             const key = `LEG|${mod.Name}`;
             if (!modSet.has(key)) {
-              modSet.set(key, { label: mod.Name, value: key, isLegendary: true });
+              modSet.set(key, { label: mod.Name, value: key, isLegendary: true, iconName: mod.IconName });
             }
           } else if (mod.MODIFIER_TYPE) {
             const key = `TYPE|${mod.MODIFIER_TYPE}`;
             if (!modSet.has(key)) {
               // Formatting Type: POISON -> Poison
               const label = mod.MODIFIER_TYPE.split('_').map(s => s.charAt(0) + s.slice(1).toLowerCase()).join(' ');
-              modSet.set(key, { label, value: key, isLegendary: false });
+              modSet.set(key, { label, value: key, isLegendary: false, iconName: mod.IconName });
             }
           }
         });
