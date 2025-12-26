@@ -225,11 +225,14 @@ function App() {
 
   return (
     <div className="main-wrapper">
-      <header className="animate-fade-in">
+      <header className="animate-fade-in" style={{ marginBottom: '50px' }}>
         <h1 className="header-title">RAMPAGE ARMORY</h1>
         <div style={{ marginTop: '15px', color: '#666', fontSize: '0.75rem', lineHeight: '1.4', textTransform: 'uppercase', letterSpacing: '1px' }}>
           <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>SHOP IS SUBJECT TO CHANGE</p>
           <p style={{ margin: '4px 0 0 0' }}>DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED</p>
+        </div>
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+          <VisitorStats />
         </div>
       </header>
 
@@ -360,7 +363,6 @@ function App() {
           alignItems: 'center',
           gap: '15px'
         }}>
-          <VisitorStats />
           <div>Assets by © 2025 Dungeon Rampage, Ported by Gamebreaking Studios Inc , Certain rights reserved.</div>
         </div>
       </div>
