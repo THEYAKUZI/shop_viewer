@@ -287,7 +287,7 @@ function App() {
         <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="section-header">
             <div className="section-line"></div>
-            <h2 className="section-title" style={{ color: 'var(--color-accent-green)' }}>
+            <h2 className="section-title" style={{ color: 'var(--color-accent-green)', minWidth: '450px' }}>
               <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -327,7 +327,7 @@ function App() {
           <section className="animate-fade-in" style={{ animationDelay: '0.2s', marginTop: '60px' }}>
             <div className="section-header">
               <div className="section-line"></div>
-              <h2 className="section-title" style={{ color: '#ffaa00' }}>
+              <h2 className="section-title" style={{ color: '#ffaa00', minWidth: '320px' }}>
                 <div style={{
                   position: 'absolute',
                   top: '50%',
@@ -362,7 +362,7 @@ function App() {
         <section className="animate-fade-in" style={{ animationDelay: '0.3s', marginTop: '100px' }}>
           <div className="section-header">
             <div className="section-line"></div>
-            <h2 className="section-title" style={{ color: 'var(--color-accent-blue)' }}>
+            <h2 className="section-title" style={{ color: 'var(--color-accent-blue)', minWidth: '320px' }}>
               <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -375,8 +375,9 @@ function App() {
                 backgroundPosition: 'center',
                 backgroundSize: 'contain',
                 zIndex: -1,
-                opacity: 0.6,
-                pointerEvents: 'none'
+                opacity: 0.8,
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-blue)' }}></span>
               Coming Soon

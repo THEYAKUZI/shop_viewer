@@ -76,11 +76,12 @@ header {
 .section-title {
     font-size: 1.5rem;
     font-weight: bold;
-    padding: 0 160px;
-    /* Increased to push lines away from background texture */
+    padding: 0 20px;
     text-transform: uppercase;
     display: flex;
     align-items: center;
+    justify-content: center;
+    /* Ensure internal text/content is centered */
     gap: 10px;
     position: relative;
     z-index: 1;
