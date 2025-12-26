@@ -293,15 +293,16 @@ function App() {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '320px',
+                width: '700px',
                 height: '100px',
                 backgroundImage: 'url("icons/384.svg")',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
-                backgroundSize: 'contain',
+                backgroundSize: '100% 100%',
                 zIndex: -1,
-                opacity: 0.6,
-                pointerEvents: 'none'
+                opacity: 0.8,
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot"></span>
               Live Now
