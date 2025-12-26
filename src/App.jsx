@@ -332,15 +332,18 @@ function App() {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '320px',
+                  width: '600px', // Wider for Live Now + Timer
                   height: '100px',
                   backgroundImage: 'url("icons/384.svg")',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',
-                  backgroundSize: 'contain',
+                  backgroundSize: 'cover',
                   zIndex: -1,
-                  opacity: 0.6,
-                  pointerEvents: 'none'
+                  opacity: 0.8,
+                  pointerEvents: 'none',
+                  border: '1px solid rgba(255, 170, 0, 0.5)',
+                  boxShadow: '0 0 15px rgba(255, 170, 0, 0.3), inset 0 0 20px rgba(255, 170, 0, 0.1)',
+                  borderRadius: '6px'
                 }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
                 Upcoming
