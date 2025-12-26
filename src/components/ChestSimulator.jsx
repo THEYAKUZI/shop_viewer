@@ -23,7 +23,11 @@ export default function ChestSimulator({ rawData }) {
     const [generatedReward, setGeneratedReward] = useState(null);
     const [chestType, setChestType] = useState(CHEST_TYPES.COMMON);
 
-    const animationRef = useRef(null);
+    // Debug logging
+    useEffect(() => {
+        console.log("ChestSimulator mounted. RawData present:", !!rawData);
+    }, [rawData]);
+
     const frameInterval = useRef(null);
 
     // Build Loot Pool
@@ -71,10 +75,18 @@ export default function ChestSimulator({ rawData }) {
             });
         });
 
+        console.log("Loot Pool Built:", {
+            legendary: pool.legendary.length,
+            rare: pool.rare.length,
+            uncommon: pool.uncommon.length,
+            common: pool.common.length
+        });
+
         setLootPool(pool);
     }, [rawData]);
 
     const openChest = () => {
+        console.log("Open Chest clicked. State:", gameState);
         if (gameState === 'ANIMATING') return;
 
         // 1. Determine Rarity
@@ -85,12 +97,20 @@ export default function ChestSimulator({ rawData }) {
         else if (roll < RARITY_CHANCE.UNCOMMON) type = CHEST_TYPES.UNCOMMON;
 
         // Ensure pool has items, else downgrade
-        if (lootPool[type].length === 0) type = CHEST_TYPES.COMMON;
+        if (!lootPool[type] || lootPool[type].length === 0) {
+            console.warn(`Empty pool for ${type}, downgrading.`);
+            type = CHEST_TYPES.COMMON;
+        }
 
         setChestType(type);
 
         // 2. Pick Item
         const pool = lootPool[type];
+        if (!pool || pool.length === 0) {
+            console.error("Critical: No items in common pool either!");
+            return;
+        }
+
         const item = pool[Math.floor(Math.random() * pool.length)];
 
         // Construct offer-like object for OfferCard
@@ -102,7 +122,7 @@ export default function ChestSimulator({ rawData }) {
             items: [{
                 weapon: item.weapon,
                 aesthetic: item.aesthetic,
-                modifiers: [], // TODO: Add random modifiers?
+                modifiers: [],
                 detail: { Level: item.aesthetic.MinLevel || 1, Rarity: type.toUpperCase() },
                 price: 0
             }]
@@ -154,7 +174,8 @@ export default function ChestSimulator({ rawData }) {
                 {gameState === 'IDLE' && (
                     <div className="idle-state">
                         <div className="chest-preview">
-                            <img src="chests/common/1.png" alt="Chest" className="chest-idle-img" />
+                            {/* Use absolute path starting with / to ensure it resolves from root */}
+                            <img src="/chests/common/1.png" alt="Chest" className="chest-idle-img" />
                         </div>
                         <button className="open-btn" onClick={openChest}>
                             OPEN CHEST
@@ -165,7 +186,7 @@ export default function ChestSimulator({ rawData }) {
                 {gameState === 'ANIMATING' && (
                     <div className="animating-state">
                         <img
-                            src={`chests/${chestType}/${currentFrame}.png`}
+                            src={`/chests/${chestType}/${currentFrame}.png`}
                             alt="Opening..."
                             className="chest-anim-img"
                         />
