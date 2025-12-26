@@ -8,6 +8,7 @@ import './HeroFilter.css';
 import ModifierFilter from './components/ModifierFilter';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 import { subscribeToAllLikes } from './utils/likeService';
+import VisitorStats from './components/VisitorStats';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
@@ -353,9 +354,14 @@ function App() {
           padding: '20px 0',
           color: '#666',
           fontSize: '0.8rem',
-          borderTop: '1px solid #333'
+          borderTop: '1px solid #333',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '15px'
         }}>
-          Assets by © 2025 Dungeon Rampage, Ported by Gamebreaking Studios Inc , Certain rights reserved.
+          <VisitorStats />
+          <div>Assets by © 2025 Dungeon Rampage, Ported by Gamebreaking Studios Inc , Certain rights reserved.</div>
         </div>
       </div>
       <img
