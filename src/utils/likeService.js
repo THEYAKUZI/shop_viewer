@@ -1,53 +1,103 @@
-const STORAGE_KEY = 'rampage_likes_v1';
+import { db } from '../firebase';
+import { ref, onValue, runTransaction, get } from 'firebase/database';
 
-// Initial seed data ensures consistent "popularity" across refreshes for everyone (simulated)
-// In a real app, this would come from a database.
-const getInitialCount = (id) => {
-    // Generate a consistent pseudo-random number based on the ID string
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-        hash = ((hash << 5) - hash) + id.charCodeAt(i);
-        hash |= 0;
-    }
-    // Map hash to a number between 5 and 150
-    return Math.abs(hash % 145) + 5;
-};
+const LOCAL_STORAGE_KEY = 'rampage_user_likes_v1';
 
-export const getLikes = () => {
+// Helpers for local tracking (did *I* like this?)
+const getLocalLikeStatus = (id) => {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : {};
+        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+        return !!stored[id];
     } catch {
-        return {};
+        return false;
     }
 };
 
-export const getLikeData = (id) => {
-    const all = getLikes();
-    if (!all[id]) {
-        // Initialize if not present
-        return {
-            count: getInitialCount(id),
-            isLiked: false
-        };
+const setLocalLikeStatus = (id, status) => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+        if (status) stored[id] = true;
+        else delete stored[id];
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stored));
+    } catch (e) {
+        console.error("Local storage error:", e);
     }
-    return all[id];
 };
 
-export const toggleLike = (id) => {
-    const all = getLikes();
-    const current = all[id] || { count: getInitialCount(id), isLiked: false };
+// --- Real Implementation ---
 
-    const newData = {
-        count: current.isLiked ? current.count - 1 : current.count + 1,
-        isLiked: !current.isLiked
+export const subscribeToLikes = (id, onUpdate) => {
+    const isLikedLocally = getLocalLikeStatus(id);
+
+    // If Firebase is configured
+    if (db) {
+        const likesRef = ref(db, `likes/${id}`);
+        const unsubscribe = onValue(likesRef, (snapshot) => {
+            const val = snapshot.val();
+            const count = (typeof val === 'number') ? val : 0;
+            onUpdate({ count, isLiked: isLikedLocally });
+        });
+        return unsubscribe;
+    }
+
+    // Fallback: Mock mode (similar to previous version)
+    // We simulate a subscription by returning immediate value
+    // and listening for window events
+    const mockHash = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        return Math.abs(hash % 145) + 5;
     };
 
-    all[id] = newData;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    // Initial callback
+    let mockCount = mockHash(id);
+    // Adjust mock count based on local like status to mimic server
+    // (If I liked it locally, but we are mocking server, we assume server count includes me)
+    // Actually simplicity: Mock count is static base + 1 if liked.
 
-    // Dispatch event for live updates across components/tabs
-    window.dispatchEvent(new Event('likes-updated'));
+    const sendUpdate = () => {
+        const liked = getLocalLikeStatus(id);
+        onUpdate({
+            count: mockCount + (liked ? 1 : 0),
+            isLiked: liked
+        });
+    };
 
-    return newData;
+    sendUpdate();
+
+    const handleStorage = () => sendUpdate();
+    window.addEventListener('mock-like-update', handleStorage);
+
+    return () => {
+        window.removeEventListener('mock-like-update', handleStorage);
+    };
+};
+
+export const toggleLike = async (id) => {
+    const wasLiked = getLocalLikeStatus(id);
+    const newStatus = !wasLiked;
+
+    setLocalLikeStatus(id, newStatus);
+
+    if (db) {
+        // Update Firebase
+        const likesRef = ref(db, `likes/${id}`);
+        try {
+            await runTransaction(likesRef, (currentCount) => {
+                if (currentCount === null) return 1; // Initialize
+                // If we are liking, +1. If unliking, -1.
+                return newStatus ? (currentCount + 1) : (currentCount - 1);
+            });
+        } catch (e) {
+            console.error("Firebase transaction failed:", e);
+            // Revert local status if network fails? 
+            // For now, keep optimistic UI or revert. 
+            // Simple: don't revert, just log.
+        }
+    } else {
+        // Update Mock
+        window.dispatchEvent(new Event('mock-like-update'));
+    }
+
+    return newStatus;
 };

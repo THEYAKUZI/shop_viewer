@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getLikeData, toggleLike } from '../utils/likeService';
+import { subscribeToLikes, toggleLike } from '../utils/likeService';
 import './LikeButton.css';
 
 export default function LikeButton({ offerId }) {
@@ -7,31 +7,17 @@ export default function LikeButton({ offerId }) {
     const [animating, setAnimating] = useState(false);
 
     useEffect(() => {
-        // Load initial data
-        setData(getLikeData(offerId));
-
-        // Listen for updates (from other tabs or components)
-        const handleUpdate = () => {
-            setData(getLikeData(offerId));
-        };
-
-        window.addEventListener('likes-updated', handleUpdate);
-        // Also listen for localStorage changes (cross-tab)
-        window.addEventListener('storage', handleUpdate);
-
-        return () => {
-            window.removeEventListener('likes-updated', handleUpdate);
-            window.removeEventListener('storage', handleUpdate);
-        };
+        const unsubscribe = subscribeToLikes(offerId, (newData) => {
+            setData(newData);
+        });
+        return () => unsubscribe();
     }, [offerId]);
 
     const handleClick = (e) => {
         e.stopPropagation(); // Prevent card click
         e.preventDefault();
 
-        const removeLike = data.isLiked;
-
-        if (!removeLike) {
+        if (!data.isLiked) {
             setAnimating(true);
             setTimeout(() => setAnimating(false), 600);
         }
