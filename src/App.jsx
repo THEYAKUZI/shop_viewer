@@ -288,6 +288,21 @@ function App() {
           <div className="section-header">
             <div className="section-line"></div>
             <h2 className="section-title" style={{ color: 'var(--color-accent-green)' }}>
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '320px',
+                height: '100px',
+                backgroundImage: 'url("icons/384.svg")',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: 'contain',
+                zIndex: -1,
+                opacity: 0.6,
+                pointerEvents: 'none'
+              }}></div>
               <span className="pulse-dot"></span>
               Live Now
               {nextResetDate && <ShopTimer targetDate={nextResetDate} onExpire={handleShopReset} />}
@@ -312,6 +327,21 @@ function App() {
             <div className="section-header">
               <div className="section-line"></div>
               <h2 className="section-title" style={{ color: '#ffaa00' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '320px',
+                  height: '100px',
+                  backgroundImage: 'url("icons/384.svg")',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  backgroundSize: 'contain',
+                  zIndex: -1,
+                  opacity: 0.6,
+                  pointerEvents: 'none'
+                }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
                 Upcoming
               </h2>
@@ -331,6 +361,21 @@ function App() {
           <div className="section-header">
             <div className="section-line"></div>
             <h2 className="section-title" style={{ color: 'var(--color-accent-blue)' }}>
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '320px',
+                height: '100px',
+                backgroundImage: 'url("icons/384.svg")',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: 'contain',
+                zIndex: -1,
+                opacity: 0.6,
+                pointerEvents: 'none'
+              }}></div>
               <span className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-blue)' }}></span>
               Coming Soon
             </h2>
