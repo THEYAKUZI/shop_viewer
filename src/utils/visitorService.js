@@ -74,6 +74,10 @@ export const initVisitorTracking = (onUpdate) => {
     return () => {
         unsubVisits2();
         unsubOnline();
+        // It's good practice to cleanup listeners, but 'onDisconnect' happens server-side 
+        // automatically when the socket closes (closing tab).
+        // However, if we unmount component but don't close tab, we might want to manually remove.
+        // We'll leave automatic handling for now as it's most robust for 'closing website'.
     };
 };
 
