@@ -332,16 +332,16 @@ function App() {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '800px', // Much wider for Live Now
-                  height: '140px', // Slightly taller
+                  width: '320px',
+                  height: '100px',
                   backgroundImage: 'url("icons/384.svg")',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',
-                  backgroundSize: '100% 100%', // Stretch to fill organic shape
+                  backgroundSize: 'contain',
                   zIndex: -1,
                   opacity: 0.8,
                   pointerEvents: 'none',
-                  filter: 'drop-shadow(0 0 5px #ffaa00)', // Orange glow around the SHAPE (not box)
+                  filter: 'drop-shadow(0 0 5px #ffaa00)'
                 }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
                 Upcoming
