@@ -1,5 +1,6 @@
 
 import React from 'react';
+import LikeButton from './LikeButton';
 
 export default function OfferCard({ offer }) {
     const item = offer.items[0]; // Primary item
@@ -169,6 +170,10 @@ export default function OfferCard({ offer }) {
                         alt="Coins"
                     />
                 </div>
+            </div>
+
+            <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
+                <LikeButton offerId={offer.Id} />
             </div>
 
             <div className="dates">

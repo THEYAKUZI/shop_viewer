@@ -1,0 +1,64 @@
+.like-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 6px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.like-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.like-btn.liked {
+    background: rgba(255, 64, 129, 0.15);
+    border-color: rgba(255, 64, 129, 0.3);
+    color: #ff4081;
+}
+
+.heart-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heart-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.like-count {
+    min-width: 15px;
+    text-align: left;
+}
+
+/* Heart pop animation */
+.like-btn.animating .heart-icon {
+    animation: heartPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPop {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.5);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
