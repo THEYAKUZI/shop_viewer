@@ -76,14 +76,14 @@ header {
 .section-title {
     font-size: 1.5rem;
     font-weight: bold;
-    padding: 0 40px;
+    padding: 0 160px;
+    /* Increased to push lines away from background texture */
     text-transform: uppercase;
     display: flex;
     align-items: center;
     gap: 10px;
     position: relative;
-    /* z-index removed here, handled in internal elements if needed, 
-       but we keep relative for absolute positioning of children */
+    z-index: 1;
 }
 
 .pulse-dot {
