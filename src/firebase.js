@@ -5,13 +5,14 @@ import { getDatabase } from "firebase/database";
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://firebase.google.com/docs/web/setup#create-firebase-project-and-app
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com"
+    apiKey: "AIzaSyCkVqu6VoOuIvkBPVm0zqnHQgGCcldgFro",
+    authDomain: "rampagearmory.firebaseapp.com",
+    projectId: "rampagearmory",
+    storageBucket: "rampagearmory.firebasestorage.app",
+    messagingSenderId: "748445390640",
+    appId: "1:748445390640:web:1f2fb9945685873672daf5",
+    measurementId: "G-QM46V4R4YG",
+    databaseURL: "https://rampagearmory-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
