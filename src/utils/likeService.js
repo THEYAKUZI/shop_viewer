@@ -35,7 +35,8 @@ export const subscribeToLikes = (id, onUpdate) => {
         const unsubscribe = onValue(likesRef, (snapshot) => {
             const val = snapshot.val();
             const count = (typeof val === 'number') ? val : 0;
-            onUpdate({ count, isLiked: isLikedLocally });
+            const currentLikedStatus = getLocalLikeStatus(id);
+            onUpdate({ count, isLiked: currentLikedStatus });
         });
         return unsubscribe;
     }
