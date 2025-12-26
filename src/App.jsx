@@ -287,7 +287,7 @@ function App() {
           {filteredData.comingSoon.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
           ) : (
-            <div className="grid-layout" style={{ opacity: 0.85 }}>
+            <div className="grid-layout">
               {filteredData.comingSoon.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}
