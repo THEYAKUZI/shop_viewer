@@ -293,7 +293,7 @@ function App() {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '700px',
+                width: '450px', // Just a bit longer than original 320px
                 height: '100px',
                 backgroundImage: 'url("icons/384.svg")',
                 backgroundRepeat: 'no-repeat',
