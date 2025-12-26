@@ -6,6 +6,7 @@ import ShopTimer from './components/ShopTimer';
 import './index.css';
 import './HeroFilter.css';
 import ModifierFilter from './components/ModifierFilter';
+import ChestSimulator from './components/ChestSimulator';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
@@ -231,6 +232,8 @@ function App() {
       />
 
       <div className="container">
+        {rawJson && <ChestSimulator rawData={rawJson} />}
+
         {/* Live Section */}
         <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="section-header">
