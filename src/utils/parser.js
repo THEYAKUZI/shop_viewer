@@ -137,3 +137,17 @@ export function parseGameMaster(json) {
 
     return offers;
 }
+
+export function parseHeroes(json) {
+    if (!json.Hero) return [];
+    return json.Hero.map(h => {
+        // Find all keys that end with _TYPE and are true
+        const allowedTypes = Object.keys(h).filter(k => k.endsWith('_TYPE') && h[k] === true);
+        return {
+            id: h.Id,
+            name: h.Name,
+            constant: h.Constant,
+            allowedTypes
+        };
+    });
+}

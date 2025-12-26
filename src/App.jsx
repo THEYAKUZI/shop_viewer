@@ -2,11 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { parseGameMaster } from './utils/parser';
 import OfferCard from './components/OfferCard';
 import ShopTimer from './components/ShopTimer';
-import VisitorCounter from './components/VisitorCounter';
+
 import './index.css';
+import './HeroFilter.css';
+import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
+  const [heroes, setHeroes] = useState([]);
+  const [selectedHero, setSelectedHero] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rawJson, setRawJson] = useState(null);
@@ -14,6 +18,11 @@ function App() {
   const processOffers = (json) => {
     try {
       const offers = parseGameMaster(json);
+      const parsedHeroes = parseHeroes(json);
+      // Sort heroes alphabetically
+      parsedHeroes.sort((a, b) => a.name.localeCompare(b.name));
+
+      setHeroes(parsedHeroes);
       const available = offers.filter(o => o.isAvailable);
       const allUpcoming = offers.filter(o => o.isUpcoming);
 
@@ -37,7 +46,7 @@ function App() {
   };
 
   useEffect(() => {
-    fetch('/DB_GameMaster.json')
+    fetch('DB_GameMaster.json')
       .then(res => {
         if (!res.ok) throw new Error("Failed to load DB_GameMaster.json. Please ensure it is in the public folder.");
         return res.json();
@@ -89,6 +98,32 @@ function App() {
     nextResetDate = new Date(Math.min(...endDates));
   }
 
+  // Filter logic
+  const getFilteredData = () => {
+    if (!selectedHero) return data;
+
+    const filterFn = (offer) => {
+      // If the offer has no items, it shouldn't show up in a weapon filter anyway
+      if (!offer.items || offer.items.length === 0) return false;
+
+      // Check if ANY item in the offer is usable by the selected hero
+      return offer.items.some(item => {
+        if (!item.weapon) return false;
+        // Check if the weapon's Mastertype is in the hero's allowedTypes
+        const type = item.weapon.Mastertype;
+        return type && selectedHero.allowedTypes && selectedHero.allowedTypes.includes(type);
+      });
+    };
+
+    return {
+      available: data.available.filter(filterFn),
+      upcoming: data.upcoming.filter(filterFn),
+      comingSoon: data.comingSoon.filter(filterFn)
+    };
+  };
+
+  const filteredData = getFilteredData();
+
   return (
     <div className="main-wrapper">
       <header className="animate-fade-in">
@@ -98,6 +133,25 @@ function App() {
           <p style={{ margin: '4px 0 0 0' }}>DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED</p>
         </div>
       </header>
+
+      {/* Hero Filter */}
+      <div className="hero-filter-container animate-fade-in" style={{ animationDelay: '0.05s' }}>
+        <button
+          className={`hero-btn ${selectedHero === null ? 'active' : ''}`}
+          onClick={() => setSelectedHero(null)}
+        >
+          All Heroes
+        </button>
+        {heroes.map(hero => (
+          <button
+            key={hero.id}
+            className={`hero-btn ${selectedHero && selectedHero.id === hero.id ? 'active' : ''}`}
+            onClick={() => setSelectedHero(hero)}
+          >
+            {hero.name}
+          </button>
+        ))}
+      </div>
 
       <div className="container">
         {/* Live Section */}
@@ -112,11 +166,11 @@ function App() {
             <div className="section-line"></div>
           </div>
 
-          {data.available.length === 0 ? (
+          {filteredData.available.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No weapons currently available.</p>
           ) : (
             <div className="grid-layout">
-              {data.available.map(offer => (
+              {filteredData.available.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
@@ -124,7 +178,7 @@ function App() {
         </section>
 
         {/* Upcoming Section (Next Batch) */}
-        {data.upcoming.length > 0 && (
+        {filteredData.upcoming.length > 0 && (
           <section className="animate-fade-in" style={{ animationDelay: '0.2s', marginTop: '60px' }}>
             <div className="section-header">
               <div className="section-line"></div>
@@ -136,7 +190,7 @@ function App() {
             </div>
 
             <div className="grid-layout" style={{ opacity: 0.9 }}>
-              {data.upcoming.map(offer => (
+              {filteredData.upcoming.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
@@ -154,21 +208,30 @@ function App() {
             <div className="section-line"></div>
           </div>
 
-          {data.comingSoon.length === 0 ? (
+          {filteredData.comingSoon.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
           ) : (
-            <div className="grid-layout" style={{ opacity: 0.6 }}>
-              {data.comingSoon.map(offer => (
+            <div className="grid-layout" style={{ opacity: 0.85 }}>
+              {filteredData.comingSoon.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
           )}
         </section>
 
-        <VisitorCounter />
+        <div style={{
+          textAlign: 'center',
+          marginTop: '60px',
+          padding: '20px 0',
+          color: '#666',
+          fontSize: '0.8rem',
+          borderTop: '1px solid #333'
+        }}>
+          Assets by © 2025 Dungeon Rampage, Ported by Gamebreaking Studios Inc , Certain rights reserved.
+        </div>
       </div>
       <img
-        src="/icons/berserker.svg"
+        src="icons/berserker.svg"
         alt=""
         className="berserker-dec"
       />

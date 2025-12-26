@@ -7,7 +7,7 @@ export default function OfferCard({ offer }) {
 
     if (!weapon || !aesthetic) return null;
 
-    const iconUrl = `/icons/${aesthetic.IconName}.png`;
+    const iconUrl = `icons/${aesthetic.IconName}.png`;
 
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
@@ -74,7 +74,7 @@ export default function OfferCard({ offer }) {
             <div className="card-icon">
                 <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`}>
                     {isLegendary && (
-                        <img src="/icons/legendary_bg.svg" className="legendary-bg" alt="" />
+                        <img src="icons/legendary_bg.svg" className="legendary-bg" alt="" />
                     )}
                     <img
                         src={iconUrl}
@@ -105,7 +105,7 @@ export default function OfferCard({ offer }) {
                 <div className="stat-row">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <img
-                            src="/icons/power_icon.svg"
+                            src="icons/power_icon.svg"
                             alt=""
                             style={{ width: '16px', height: '16px', verticalAlign: 'middle' }}
                         />
@@ -138,7 +138,7 @@ export default function OfferCard({ offer }) {
                                 {/* Modifier Icon */}
                                 {mod.IconName && (
                                     <img
-                                        src={`/icons/${mod.IconName}.png`}
+                                        src={`icons/${mod.IconName}.png`}
                                         style={{ width: '24px', height: '24px' }}
                                         onError={(e) => { e.target.style.display = 'none'; }} // Hide if missing
                                         alt=""
@@ -164,7 +164,7 @@ export default function OfferCard({ offer }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     {item.price.toLocaleString()}
                     <img
-                        src="/icons/doober_coin.png"
+                        src="icons/doober_coin.png"
                         style={{ width: '28px', height: '28px', verticalAlign: 'middle' }}
                         alt="Coins"
                     />
