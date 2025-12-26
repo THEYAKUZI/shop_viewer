@@ -1,6 +1,13 @@
+@font-face {
+    font-family: 'FatRhinoPB';
+    src: url('/fonts/FatRhinoPB-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 :root {
     --font-main: 'Outfit', sans-serif;
-    --font-display: 'Impact', sans-serif;
+    --font-display: 'FatRhinoPB', 'Impact', sans-serif;
     --color-bg-dark: #0a0a0a;
     --color-bg-card: #1a1a1a;
     --color-text-main: #ffffff;
