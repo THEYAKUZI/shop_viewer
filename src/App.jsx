@@ -287,14 +287,14 @@ function App() {
         <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="section-header">
             <div className="section-line"></div>
-            <h2 className="section-title" style={{ color: 'var(--color-accent-green)', minWidth: '450px' }}>
+            <h2 className="section-title" style={{ color: 'var(--color-accent-green)', minWidth: '500px' }}>
               <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '450px', // Just a bit longer than original 320px
-                height: '100px',
+                width: '500px', // Wider
+                height: '70px', // Shorter height to create "stretched" look without "big" look
                 backgroundImage: 'url("icons/384.svg")',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
