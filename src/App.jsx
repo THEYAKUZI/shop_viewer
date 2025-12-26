@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { parseGameMaster } from './utils/parser';
+
 import OfferCard from './components/OfferCard';
 import ShopTimer from './components/ShopTimer';
 
