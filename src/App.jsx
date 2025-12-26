@@ -22,8 +22,13 @@ function App() {
     try {
       const offers = parseGameMaster(json);
       const parsedHeroes = parseHeroes(json);
-      // Sort heroes alphabetically
-      parsedHeroes.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort heroes: Berserker > Ranger > Sorcerer > Chef
+      const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4 };
+      parsedHeroes.sort((a, b) => {
+        const valA = order[a.name] || 99;
+        const valB = order[b.name] || 99;
+        return valA - valB;
+      });
 
       setHeroes(parsedHeroes);
 
