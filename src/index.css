@@ -85,8 +85,8 @@ header {
 .grid-layout {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 40px;
-    padding-bottom: 20px;
+    gap: 60px 40px;
+    padding-bottom: 40px;
 }
 
 .offer-card {
@@ -99,11 +99,8 @@ header {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 540px;
-    /* Ensure sufficient height for alignment */
+    height: auto;
     z-index: 1;
-    /* Create stacking context */
 }
 
 .offer-card:hover {
