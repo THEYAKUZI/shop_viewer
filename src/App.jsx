@@ -232,7 +232,7 @@ function App() {
         onChange={setSelectedModifiers}
       />
 
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '40px' }}>
         <button
           className="hero-btn active"
           style={{ padding: '15px 30px', fontSize: '1.2rem', boxShadow: '0 0 15px rgba(255, 204, 0, 0.4)' }}
