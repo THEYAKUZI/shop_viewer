@@ -28,6 +28,7 @@ const ModifierFilter = ({ options, selected, onChange }) => {
                         key={opt.value}
                         className={`mod-btn ${opt.isLegendary ? 'legendary' : ''} ${selected.includes(opt.value) ? 'active' : ''}`}
                         onClick={() => toggleOption(opt)}
+                        title={opt.description || opt.label} // Native tooltip
                     >
                         {opt.iconName && (
                             <img
