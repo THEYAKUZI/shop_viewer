@@ -274,7 +274,7 @@ function App() {
         )}
 
         {/* Coming Soon Section (Future Batches) */}
-        <section className="animate-fade-in" style={{ animationDelay: '0.3s', marginTop: '60px' }}>
+        <section className="animate-fade-in" style={{ animationDelay: '0.3s', marginTop: '100px' }}>
           <div className="section-header">
             <div className="section-line"></div>
             <h2 className="section-title" style={{ color: 'var(--color-accent-blue)' }}>
@@ -287,7 +287,7 @@ function App() {
           {filteredData.comingSoon.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
           ) : (
-            <div className="grid-layout">
+            <div className="grid-layout" style={{ opacity: 0.85 }}>
               {filteredData.comingSoon.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}
