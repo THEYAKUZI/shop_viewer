@@ -102,3 +102,21 @@ export const toggleLike = async (id) => {
 
     return newStatus;
 };
+
+export const subscribeToAllLikes = (onUpdate) => {
+    if (db) {
+        const likesRef = ref(db, 'likes');
+        const unsubscribe = onValue(likesRef, (snapshot) => {
+            const val = snapshot.val() || {};
+            onUpdate(val);
+        });
+        return unsubscribe;
+    }
+
+    // Mock fallback
+    // In mock mode, we don't really have "all" likes easily accessible or changing 
+    // without iterating everything, but for filtering we can return an empty object or mock data.
+    // For now, let's just return empty in mock mode properly to avoid errors.
+    onUpdate({});
+    return () => { };
+};

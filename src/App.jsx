@@ -7,6 +7,7 @@ import './index.css';
 import './HeroFilter.css';
 import ModifierFilter from './components/ModifierFilter';
 import { parseGameMaster, parseHeroes } from './utils/parser';
+import { subscribeToAllLikes } from './utils/likeService';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
@@ -17,6 +18,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rawJson, setRawJson] = useState(null);
+  const [allLikes, setAllLikes] = useState({});
+  const [sortByPopularity, setSortByPopularity] = useState(false);
 
   const processOffers = (json) => {
     try {
@@ -83,6 +86,7 @@ function App() {
   };
 
   useEffect(() => {
+    // Fetch data
     fetch('DB_GameMaster.json')
       .then(res => {
         if (!res.ok) throw new Error("Failed to load DB_GameMaster.json. Please ensure it is in the public folder.");
@@ -98,6 +102,12 @@ function App() {
         setError(err.message);
         setLoading(false);
       });
+
+    // Subscribe to likes
+    const unsubscribe = subscribeToAllLikes((likes) => {
+      setAllLikes(likes);
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleShopReset = () => {
@@ -177,11 +187,24 @@ function App() {
       });
     };
 
-    return {
+    const result = {
       available: data.available.filter(filterFn),
       upcoming: data.upcoming.filter(filterFn),
       comingSoon: data.comingSoon.filter(filterFn)
     };
+
+    if (sortByPopularity) {
+      const sortFn = (a, b) => {
+        const likesA = allLikes[a.Id] || 0;
+        const likesB = allLikes[b.Id] || 0;
+        return likesB - likesA;
+      };
+      result.available.sort(sortFn);
+      result.upcoming.sort(sortFn);
+      result.comingSoon.sort(sortFn);
+    }
+
+    return result;
   };
 
 
@@ -222,6 +245,20 @@ function App() {
             {hero.name}
           </button>
         ))}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <button
+          className={`hero-btn ${sortByPopularity ? 'active' : ''}`}
+          onClick={() => setSortByPopularity(!sortByPopularity)}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: sortByPopularity ? 'rgba(255, 64, 129, 0.2)' : undefined,
+            borderColor: sortByPopularity ? '#ff4081' : undefined
+          }}
+        >
+          {sortByPopularity ? '❤️ Sorted by Most Liked' : 'Sort by Most Liked'}
+        </button>
       </div>
 
       <ModifierFilter
