@@ -11,6 +11,7 @@ import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
+  const [showChestSim, setShowChestSim] = useState(false);
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
   const [modifierOptions, setModifierOptions] = useState([]);
@@ -231,8 +232,20 @@ function App() {
         onChange={setSelectedModifiers}
       />
 
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <button
+          className="hero-btn active"
+          style={{ padding: '15px 30px', fontSize: '1.2rem', boxShadow: '0 0 15px rgba(255, 204, 0, 0.4)' }}
+          onClick={() => setShowChestSim(true)}
+        >
+          🎲 TRY YOUR LUCK (Open Chest) 🎲
+        </button>
+      </div>
+
       <div className="container">
-        {rawJson && <ChestSimulator rawData={rawJson} />}
+        {showChestSim && rawJson && (
+          <ChestSimulator rawData={rawJson} onClose={() => setShowChestSim(false)} />
+        )}
 
         {/* Live Section */}
         <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>

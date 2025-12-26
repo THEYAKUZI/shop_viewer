@@ -16,7 +16,7 @@ const CHEST_TYPES = {
     LEGENDARY: 'legendary'
 };
 
-export default function ChestSimulator({ rawData }) {
+export default function ChestSimulator({ rawData, onClose }) {
     const [lootPool, setLootPool] = useState({});
     const [gameState, setGameState] = useState('IDLE'); // IDLE, ANIMATING, REVEALED
     const [currentFrame, setCurrentFrame] = useState(1);
@@ -164,50 +164,52 @@ export default function ChestSimulator({ rawData }) {
     if (!lootPool[CHEST_TYPES.COMMON]?.length) return null;
 
     return (
-        <div className="chest-sim-container animate-fade-in">
-            <h2 className="section-title" style={{ justifyContent: 'center', marginBottom: '40px' }}>
-                <span className="pulse-dot" style={{ background: '#bf00ff' }}></span>
-                Chest Simulator
-            </h2>
+        <div className="chest-modal-overlay">
+            <div className="chest-sim-container animate-fade-in">
+                <button className="btn-close" onClick={onClose}>&times;</button>
+                <h2 className="section-title" style={{ justifyContent: 'center', marginBottom: '20px' }}>
+                    <span className="pulse-dot" style={{ background: '#bf00ff' }}></span>
+                    Chest Simulator
+                </h2>
 
-            <div className="sim-stage">
-                {gameState === 'IDLE' && (
-                    <div className="idle-state">
-                        <div className="chest-preview">
-                            {/* Use absolute path starting with / to ensure it resolves from root */}
-                            <img src="/chests/common/1.png" alt="Chest" className="chest-idle-img" />
+                <div className="sim-stage">
+                    {gameState === 'IDLE' && (
+                        <div className="idle-state">
+                            <div className="chest-preview">
+                                <img src="chests/common/1.png" alt="Chest" className="chest-idle-img" />
+                            </div>
+                            <button className="open-btn" onClick={openChest}>
+                                OPEN CHEST
+                            </button>
                         </div>
-                        <button className="open-btn" onClick={openChest}>
-                            OPEN CHEST
-                        </button>
-                    </div>
-                )}
+                    )}
 
-                {gameState === 'ANIMATING' && (
-                    <div className="animating-state">
-                        <img
-                            src={`/chests/${chestType}/${currentFrame}.png`}
-                            alt="Opening..."
-                            className="chest-anim-img"
-                        />
-                    </div>
-                )}
+                    {gameState === 'ANIMATING' && (
+                        <div className="animating-state">
+                            <img
+                                src={`chests/${chestType}/${currentFrame}.png`}
+                                alt="Opening..."
+                                className="chest-anim-img"
+                            />
+                        </div>
+                    )}
 
-                {gameState === 'REVEALED' && generatedReward && (
-                    <div className="revealed-state animate-fade-in">
-                        <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ color: chestType === 'legendary' ? '#bf00ff' : '#fff' }}>
-                                {chestType.toUpperCase()} DROPPED!
-                            </h3>
+                    {gameState === 'REVEALED' && generatedReward && (
+                        <div className="revealed-state animate-fade-in">
+                            <div style={{ marginBottom: '20px' }}>
+                                <h3 style={{ color: chestType === 'legendary' ? '#bf00ff' : '#fff' }}>
+                                    {chestType.toUpperCase()} DROPPED!
+                                </h3>
+                            </div>
+                            <div className="reward-card-wrapper">
+                                <OfferCard offer={generatedReward} />
+                            </div>
+                            <button className="open-btn secondary" onClick={reset}>
+                                OPEN ANOTHER
+                            </button>
                         </div>
-                        <div className="reward-card-wrapper">
-                            <OfferCard offer={generatedReward} />
-                        </div>
-                        <button className="open-btn secondary" onClick={reset}>
-                            OPEN ANOTHER
-                        </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -1,13 +1,48 @@
+.chest-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
 .chest-sim-container {
-    background: rgba(0, 0, 0, 0.4);
+    background: radial-gradient(circle at center, #2a2a2a, #111);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid #333;
     padding: 40px;
-    margin: 60px 0;
     text-align: center;
     position: relative;
     overflow: hidden;
-    z-index: 2;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    position: relative;
+}
+
+.btn-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 20;
+    padding: 5px;
+    transition: color 0.2s;
+}
+
+.btn-close:hover {
+    color: #fff;
 }
 
 .sim-stage {
@@ -20,11 +55,11 @@
 .chest-preview,
 .animating-state {
     width: 300px;
-    /* Adjust based on original dimensions */
     height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
 }
 
 .chest-idle-img {
@@ -32,7 +67,6 @@
     height: auto;
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
     animation: floating 3s ease-in-out infinite;
-    pointer-events: none;
 }
 
 .chest-anim-img {
