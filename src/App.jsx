@@ -147,8 +147,8 @@ function App() {
 
   // Filter logic
   const getFilteredData = () => {
-    // Optimization: if no filters, return raw data
-    if (!selectedHero && selectedModifiers.length === 0) return data;
+    // Optimization: if no filters and no sort, return raw data
+    if (!selectedHero && selectedModifiers.length === 0 && !sortByPopularity) return data;
 
     const filterFn = (offer) => {
       // If the offer has no items, it shouldn't show up in a weapon filter anyway
