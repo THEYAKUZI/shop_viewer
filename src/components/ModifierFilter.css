@@ -1,0 +1,77 @@
+.modifier-filter-container {
+    padding: 0 20px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.modifier-filter-title {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.modifier-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 1000px;
+}
+
+.mod-btn {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #333;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: 'Outfit', sans-serif;
+    text-transform: capitalize;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.mod-btn:hover {
+    border-color: #555;
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.mod-btn.active {
+    background: rgba(0, 255, 170, 0.15);
+    border-color: #00ffaa;
+    color: #00ffaa;
+    box-shadow: 0 0 10px rgba(0, 255, 170, 0.2);
+}
+
+.mod-btn.legendary {
+    border-color: #7a00cc;
+    color: #bfaee6;
+}
+
+.mod-btn.legendary.active {
+    background: rgba(170, 0, 255, 0.2);
+    border-color: #bf00ff;
+    color: #e099ff;
+    box-shadow: 0 0 10px rgba(191, 0, 255, 0.3);
+}
+
+.reset-mods-btn {
+    margin-top: 15px;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.reset-mods-btn:hover {
+    color: #888;
+}

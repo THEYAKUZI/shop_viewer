@@ -5,12 +5,15 @@ import ShopTimer from './components/ShopTimer';
 
 import './index.css';
 import './HeroFilter.css';
+import ModifierFilter from './components/ModifierFilter';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
+  const [modifierOptions, setModifierOptions] = useState([]);
+  const [selectedModifiers, setSelectedModifiers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rawJson, setRawJson] = useState(null);
@@ -23,6 +26,35 @@ function App() {
       parsedHeroes.sort((a, b) => a.name.localeCompare(b.name));
 
       setHeroes(parsedHeroes);
+
+      // Extract unique modifier options from all offers
+      const modSet = new Map(); // Value -> { label, value, isLegendary }
+
+      const processItemModifiers = (item) => {
+        if (!item.modifiers) return;
+        item.modifiers.forEach(mod => {
+          if (mod.isLegendary) {
+            const key = `LEG|${mod.Name}`;
+            if (!modSet.has(key)) {
+              modSet.set(key, { label: mod.Name, value: key, isLegendary: true });
+            }
+          } else if (mod.MODIFIER_TYPE) {
+            const key = `TYPE|${mod.MODIFIER_TYPE}`;
+            if (!modSet.has(key)) {
+              // Formatting Type: POISON -> Poison
+              const label = mod.MODIFIER_TYPE.split('_').map(s => s.charAt(0) + s.slice(1).toLowerCase()).join(' ');
+              modSet.set(key, { label, value: key, isLegendary: false });
+            }
+          }
+        });
+      };
+
+      offers.forEach(o => {
+        if (o.items) o.items.forEach(processItemModifiers);
+      });
+
+      setModifierOptions(Array.from(modSet.values()));
+
       const available = offers.filter(o => o.isAvailable);
       const allUpcoming = offers.filter(o => o.isUpcoming);
 
@@ -100,18 +132,43 @@ function App() {
 
   // Filter logic
   const getFilteredData = () => {
-    if (!selectedHero) return data;
+    // Optimization: if no filters, return raw data
+    if (!selectedHero && selectedModifiers.length === 0) return data;
 
     const filterFn = (offer) => {
       // If the offer has no items, it shouldn't show up in a weapon filter anyway
       if (!offer.items || offer.items.length === 0) return false;
 
-      // Check if ANY item in the offer is usable by the selected hero
+      // Check if ANY item in the offer is usable by the selected hero AND has selected modifiers
       return offer.items.some(item => {
         if (!item.weapon) return false;
-        // Check if the weapon's Mastertype is in the hero's allowedTypes
-        const type = item.weapon.Mastertype;
-        return type && selectedHero.allowedTypes && selectedHero.allowedTypes.includes(type);
+
+        // 1. Hero Check
+        if (selectedHero) {
+          const type = item.weapon.Mastertype;
+          if (!type || !selectedHero.allowedTypes || !selectedHero.allowedTypes.includes(type)) {
+            return false;
+          }
+        }
+
+        // 2. Modifier Check (Must have ALL selected modifiers)
+        if (selectedModifiers.length > 0) {
+          const itemMods = item.modifiers || [];
+          // For each selected filter, must find a matching mod in itemMods
+          const hasAllMods = selectedModifiers.every(filterKey => {
+            const [type, val] = filterKey.split('|');
+            if (type === 'LEG') {
+              // Check for exact legendary name
+              return itemMods.some(m => m.isLegendary && m.Name === val);
+            } else {
+              // Check for modifier type
+              return itemMods.some(m => !m.isLegendary && m.MODIFIER_TYPE === val);
+            }
+          });
+          if (!hasAllMods) return false;
+        }
+
+        return true;
       });
     };
 
@@ -152,6 +209,12 @@ function App() {
           </button>
         ))}
       </div>
+
+      <ModifierFilter
+        options={modifierOptions}
+        selected={selectedModifiers}
+        onChange={setSelectedModifiers}
+      />
 
       <div className="container">
         {/* Live Section */}
