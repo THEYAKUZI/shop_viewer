@@ -147,6 +147,7 @@ export function parseHeroes(json) {
             id: h.Id,
             name: h.Name,
             constant: h.Constant,
+            iconName: h.IconName,
             allowedTypes
         };
     });

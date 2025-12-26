@@ -205,6 +205,14 @@ function App() {
             className={`hero-btn ${selectedHero && selectedHero.id === hero.id ? 'active' : ''}`}
             onClick={() => setSelectedHero(hero)}
           >
+            {hero.iconName && (
+              <img
+                src={`icons/${hero.iconName}.png`}
+                alt={hero.name}
+                className="hero-icon"
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+            )}
             {hero.name}
           </button>
         ))}
