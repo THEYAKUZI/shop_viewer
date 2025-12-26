@@ -6,6 +6,11 @@
 }
 
 :root {
+    /* Themes will override these */
+    --color-theme-primary: #ffcc00;
+    --color-theme-secondary: #ff4400;
+    --color-theme-glow: rgba(255, 204, 0, 0.3);
+
     --font-main: 'Outfit', sans-serif;
     --font-display: 'FatRhinoPB', 'Impact', sans-serif;
     --color-bg-dark: #0a0a0a;
@@ -23,6 +28,11 @@ body {
     font-family: var(--font-main);
     background-color: var(--color-bg-dark);
     color: var(--color-text-main);
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 90%),
+        radial-gradient(circle at 90% 10%, var(--color-theme-glow) 0%, rgba(0, 0, 0, 0) 50%);
+    background-attachment: fixed;
+    transition: background 0.5s ease;
 }
 
 .container {
@@ -33,13 +43,28 @@ body {
 
 header {
     text-align: center;
-    padding: 40px 0;
+    padding: 30px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.sticky-filters {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px 0 5px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
 }
 
 .header-title {
     font-family: var(--font-display);
     font-size: 4rem;
-    background: linear-gradient(to right, #ffcc00, #ff4400);
+    font-size: 4rem;
+    background: linear-gradient(to right, var(--color-theme-primary), var(--color-theme-secondary));
     -webkit-background-clip: text;
     color: transparent;
     margin: 0;
@@ -111,8 +136,10 @@ header {
 }
 
 .offer-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--color-theme-glow);
+    border-color: var(--color-theme-primary);
+    z-index: 10;
 }
 
 .card-icon {
