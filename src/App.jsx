@@ -6,10 +6,12 @@ import ShopTimer from './components/ShopTimer';
 import './index.css';
 import './HeroFilter.css';
 import ModifierFilter from './components/ModifierFilter';
+import Trailer from './components/Trailer/Trailer';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
+  const [showTrailer, setShowTrailer] = useState(false);
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
   const [modifierOptions, setModifierOptions] = useState([]);
@@ -189,6 +191,7 @@ function App() {
 
   return (
     <div className="main-wrapper">
+      {showTrailer && <Trailer onComplete={() => setShowTrailer(false)} />}
       <header className="animate-fade-in">
         <h1 className="header-title">RAMPAGE ARMORY</h1>
         <div style={{ marginTop: '15px', color: '#666', fontSize: '0.75rem', lineHeight: '1.4', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -229,6 +232,16 @@ function App() {
         selected={selectedModifiers}
         onChange={setSelectedModifiers}
       />
+
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '40px' }}>
+        <button
+          className="hero-btn active"
+          style={{ padding: '15px 30px', fontSize: '1.2rem', boxShadow: '0 0 15px rgba(255, 255, 255, 0.2)' }}
+          onClick={() => setShowTrailer(true)}
+        >
+          🎥 WATCH TRAILER
+        </button>
+      </div>
 
 
       <div className="container">
