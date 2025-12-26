@@ -184,7 +184,39 @@ function App() {
     };
   };
 
+  // Theme Colors
+  const themes = {
+    'Berserker': { primary: '#ff4400', secondary: '#ff8800', glow: 'rgba(255, 68, 0, 0.4)' },
+    'Ranger': { primary: '#00ffaa', secondary: '#00cc88', glow: 'rgba(0, 255, 170, 0.4)' },
+    'Sorcerer': { primary: '#00aaff', secondary: '#0088cc', glow: 'rgba(0, 170, 255, 0.4)' },
+    'Chef': { primary: '#ffcc00', secondary: '#ffaa00', glow: 'rgba(255, 204, 0, 0.4)' },
+    'Default': { primary: '#ffcc00', secondary: '#ff4400', glow: 'rgba(255, 204, 0, 0.3)' }
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const theme = selectedHero ? themes[selectedHero.name] || themes['Default'] : themes['Default'];
+
+    root.style.setProperty('--color-theme-primary', theme.primary);
+    root.style.setProperty('--color-theme-secondary', theme.secondary);
+    root.style.setProperty('--color-theme-glow', theme.glow);
+  }, [selectedHero]);
+
+  // Determine decoration image based on hero
+  const getDecorationImage = () => {
+    if (selectedHero) {
+      // Try to map hero name to svg file if exists, else fallback
+      const map = {
+        'Berserker': 'berserker.svg',
+        // Add others if we have SVGs, otherwise fallback or hide
+      };
+      return map[selectedHero.name] || 'berserker.svg';
+    }
+    return 'berserker.svg';
+  };
+
   const filteredData = getFilteredData();
+  const decorationImage = getDecorationImage();
 
   return (
     <div className="main-wrapper">
@@ -307,7 +339,7 @@ function App() {
         </div>
       </div>
       <img
-        src="icons/berserker.svg"
+        src={`icons/${decorationImage}`}
         alt=""
         className="berserker-dec"
       />
