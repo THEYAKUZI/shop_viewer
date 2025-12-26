@@ -42,15 +42,40 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* Default Active (Berserker / Generic) */
 .hero-btn.active {
     background: linear-gradient(135deg, rgba(255, 170, 0, 0.8), rgba(255, 136, 0, 0.9));
-    /* Gradient for active */
     color: #000;
     border-color: #ffaa00;
     font-weight: 700;
     box-shadow: 0 0 25px rgba(255, 170, 0, 0.5);
     transform: scale(1.1);
     z-index: 10;
+}
+
+/* Ranger - Green */
+.hero-btn.ranger.active {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(56, 142, 60, 0.9));
+    border-color: #4caf50;
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.5);
+    color: #fff;
+}
+
+/* Sorcerer - Purple */
+.hero-btn.sorcerer.active {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(123, 31, 162, 0.9));
+    border-color: #9c27b0;
+    box-shadow: 0 0 25px rgba(156, 39, 176, 0.5);
+    color: #fff;
+}
+
+/* Chef - Greenish White */
+.hero-btn.chef.active {
+    background: linear-gradient(135deg, rgba(232, 245, 233, 0.95), rgba(200, 230, 201, 0.95));
+    border-color: #c8e6c9;
+    box-shadow: 0 0 25px rgba(200, 230, 201, 0.6);
+    color: #2e7d32;
+    /* Darker text for contrast on light background */
 }
 
 .hero-btn.active:hover {

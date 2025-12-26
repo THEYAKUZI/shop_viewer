@@ -231,7 +231,7 @@ function App() {
         {heroes.map(hero => (
           <button
             key={hero.id}
-            className={`hero-btn ${selectedHero && selectedHero.id === hero.id ? 'active' : ''}`}
+            className={`hero-btn ${hero.name.toLowerCase()} ${selectedHero && selectedHero.id === hero.id ? 'active' : ''}`}
             onClick={() => setSelectedHero(hero)}
           >
             {hero.iconName && (
