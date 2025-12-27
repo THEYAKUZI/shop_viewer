@@ -221,6 +221,40 @@ function App() {
   };
 
 
+  // Calculate top liked offers per hero to identify "Most Recommended"
+  const topLikedIds = React.useMemo(() => {
+    const allOffers = [...data.available, ...data.upcoming, ...data.comingSoon];
+    const maxLikesPerHero = {};
+
+    // First pass: Find max likes for each hero
+    allOffers.forEach(offer => {
+      const hero = offer.items?.[0]?.detail?.Hero;
+      if (!hero) return;
+
+      const likes = allLikes[offer.Id] || 0;
+      // We only care if there are actual likes > 0
+      if (likes > 0) {
+        if (likes > (maxLikesPerHero[hero] || 0)) {
+          maxLikesPerHero[hero] = likes;
+        }
+      }
+    });
+
+    // Second pass: Mark offers that match the max
+    const topIds = new Set();
+    allOffers.forEach(offer => {
+      const hero = offer.items?.[0]?.detail?.Hero;
+      if (!hero) return;
+      const likes = allLikes[offer.Id] || 0;
+
+      // Must have likes and equal the max for that hero
+      if (likes > 0 && likes === maxLikesPerHero[hero]) {
+        topIds.add(offer.Id);
+      }
+    });
+    return topIds;
+  }, [data, allLikes]);
+
   const filteredData = getFilteredData();
 
   return (
@@ -317,7 +351,7 @@ function App() {
           ) : (
             <div className="grid-layout">
               {filteredData.available.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} isMostRecommended={topLikedIds.has(offer.Id)} />
               ))}
             </div>
           )}
@@ -353,7 +387,7 @@ function App() {
 
             <div className="grid-layout" style={{ opacity: 0.9 }}>
               {filteredData.upcoming.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} isMostRecommended={topLikedIds.has(offer.Id)} />
               ))}
             </div>
           </section>
@@ -391,7 +425,7 @@ function App() {
           ) : (
             <div className="grid-layout" style={{ opacity: 0.85 }}>
               {filteredData.comingSoon.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} isMostRecommended={topLikedIds.has(offer.Id)} />
               ))}
             </div>
           )}
