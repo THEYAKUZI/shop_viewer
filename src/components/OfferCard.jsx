@@ -21,9 +21,18 @@ export default function OfferCard({ offer }) {
 
         try {
             const canvas = await html2canvas(cardRef.current, {
-                useCORS: true,
-                backgroundColor: '#1a1a1a', // Ensure dark background is captured if transparent
-                scale: 2 // Higher resolution
+                useCORS: true, // Keep true for other assets
+                backgroundColor: '#1a1a1a',
+                scale: 2,
+                onclone: (clonedDoc) => {
+                    // Fix: Remove CSS filters from weapon images in the clone
+                    // html2canvas sometimes fails to render images with drop-shadow filters
+                    const weaponImgs = clonedDoc.querySelectorAll('.weapon-img');
+                    weaponImgs.forEach(img => {
+                        img.style.filter = 'none';
+                        img.style.transform = 'none'; // Simplify transform if any
+                    });
+                }
             });
 
             canvas.toBlob(async (blob) => {
@@ -31,14 +40,13 @@ export default function OfferCard({ offer }) {
                     if (navigator.clipboard && navigator.clipboard.write) {
                         const item = new ClipboardItem({ 'image/png': blob });
                         await navigator.clipboard.write([item]);
-                        // Feedback
-                        setTimeout(() => setIsCopying(false), 2000); // Reset after 2s
+                        setTimeout(() => setIsCopying(false), 2000);
                     } else {
                         throw new Error('Clipboard API not available');
                     }
                 } catch (err) {
                     console.error('Failed to copy to clipboard:', err);
-                    alert('Failed to copy image to clipboard. Please try again.');
+                    alert('Failed to copy. Error: ' + err.message);
                     setIsCopying(false);
                 }
             });
@@ -117,7 +125,6 @@ export default function OfferCard({ offer }) {
                         src={iconUrl}
                         className="weapon-img"
                         alt={aesthetic.Name}
-                        crossOrigin="anonymous" // Required for html2canvas
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/128?text=No+Icon' }}
                     />
                 </div>
