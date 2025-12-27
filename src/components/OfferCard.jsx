@@ -21,17 +21,39 @@ export default function OfferCard({ offer }) {
 
         try {
             const canvas = await html2canvas(cardRef.current, {
-                useCORS: true, // Keep true for other assets
+                useCORS: true,
+                allowTaint: true, // Try allowing taint
                 backgroundColor: '#1a1a1a',
                 scale: 2,
+                logging: false,
                 onclone: (clonedDoc) => {
-                    // Fix: Remove CSS filters from weapon images in the clone
-                    // html2canvas sometimes fails to render images with drop-shadow filters
-                    const weaponImgs = clonedDoc.querySelectorAll('.weapon-img');
-                    weaponImgs.forEach(img => {
+                    // Fix: html2canvas struggles with max-width/height in flex containers
+                    // We force the image to a fixed size in the clone to ensure it renders
+                    const frame = clonedDoc.querySelector('.icon-frame');
+                    if (frame) {
+                        frame.style.overflow = 'visible'; // valid
+                        frame.style.display = 'block'; // simplify layout
+                        frame.style.position = 'relative';
+                    }
+
+                    const img = clonedDoc.querySelector('.weapon-img');
+                    if (img) {
+                        // Reset all complex styles that might confuse the renderer
+                        img.style.maxWidth = 'none';
+                        img.style.maxHeight = 'none';
                         img.style.filter = 'none';
-                        img.style.transform = 'none'; // Simplify transform if any
-                    });
+                        img.style.transform = 'none';
+
+                        // Force explicit dimensions roughly matching visual appearance
+                        // The frame is 100x100, so 90px is appropriate
+                        img.style.width = '90px';
+                        img.style.height = '90px';
+                        img.style.objectFit = 'contain';
+
+                        // Center it manually in the simplified block frame
+                        img.style.margin = '5px auto';
+                        img.style.display = 'block';
+                    }
                 }
             });
 
