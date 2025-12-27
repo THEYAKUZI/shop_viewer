@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
-import html2canvas from 'html2canvas';
+import { toBlob } from 'html-to-image';
 
 export default function OfferCard({ offer }) {
     const cardRef = useRef(null);
@@ -20,54 +20,35 @@ export default function OfferCard({ offer }) {
         setIsCopying(true);
 
         try {
-            const canvas = await html2canvas(cardRef.current, {
-                useCORS: true,
-                allowTaint: true,
+            // html-to-image uses SVG foreignObject which handles CSS/Images much better than html2canvas
+            const blob = await toBlob(cardRef.current, {
                 backgroundColor: '#1a1a1a',
-                scale: 2,
-                logging: false,
-                onclone: (clonedDoc) => {
-                    // Fix: Target ALL elements in the clone to ensure we hit the right one
-                    // Use less destructive styling changes to preserve layout
-                    const frames = clonedDoc.querySelectorAll('.icon-frame');
-                    frames.forEach(frame => {
-                        // Don't change display (breaks flex), just allow overflow
-                        frame.style.overflow = 'visible';
-                    });
-
-                    const imgs = clonedDoc.querySelectorAll('.weapon-img');
-                    imgs.forEach(img => {
-                        img.style.maxWidth = 'none';
-                        img.style.maxHeight = 'none';
-                        img.style.filter = 'none'; // CRITICAL: Filters often break html2canvas
-                        img.style.transform = 'none';
-
-                        // Explicit pixel size for html2canvas
-                        img.style.width = '90px';
-                        img.style.height = '90px';
-                        img.style.objectFit = 'contain';
-                        img.style.zIndex = '100'; // Ensure on top of bg, though stacking context matters most
-                    });
+                pixelRatio: 2, // High resolution
+                filter: (node) => {
+                    // Exclude the copy button itself from the screenshot
+                    return node.tagName !== 'BUTTON';
                 }
             });
 
-            canvas.toBlob(async (blob) => {
-                try {
-                    if (navigator.clipboard && navigator.clipboard.write) {
-                        const item = new ClipboardItem({ 'image/png': blob });
-                        await navigator.clipboard.write([item]);
-                        setTimeout(() => setIsCopying(false), 2000);
-                    } else {
-                        throw new Error('Clipboard API not available');
-                    }
-                } catch (err) {
-                    console.error('Failed to copy to clipboard:', err);
-                    alert('Failed to copy. Error: ' + err.message);
-                    setIsCopying(false);
+            if (!blob) throw new Error('Failed to generate image blob');
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    setTimeout(() => setIsCopying(false), 2000);
+                } else {
+                    throw new Error('Clipboard API not available');
                 }
-            });
+            } catch (err) {
+                console.error('Clipboard write failed:', err);
+                alert('Failed to copy. ' + err.message);
+                setIsCopying(false);
+            }
         } catch (err) {
             console.error('Screenshot failed:', err);
+            // Fallback: If image fails to load (CORS), try forcing a re-render or alerting
+            alert('Screenshot failed. Check console for details.');
             setIsCopying(false);
         }
     };
