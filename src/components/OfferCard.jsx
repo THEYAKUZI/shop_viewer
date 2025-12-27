@@ -7,7 +7,7 @@ const imgCache = new Map();
 
 // ... imports
 // import translations just in case or rely on prop
-import { translations } from '../utils/translations';
+// ... imports
 
 // ...
 
