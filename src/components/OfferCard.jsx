@@ -109,6 +109,60 @@ export default function OfferCard({ offer }) {
         });
     };
 
+    const renderStars = (level) => {
+        if (!level || level < 1) return null;
+        return (
+            <span style={{ color: '#ffcc00', marginLeft: '4px' }}>
+                {'★'.repeat(level)}
+            </span>
+        );
+    };
+
+    const getModifierName = (mod) => {
+        if (mod.isLegendary) return mod.Name;
+
+        // Map for regular modifier types to friendly names
+        const typeMap = {
+            'DAMAGE': 'Damage',
+            'STUN': 'Stun',
+            'SLOW': 'Slow',
+            'CRIPPLE': 'Cripple',
+            'ROOT': 'Root',
+            'KNOCKBACK': 'Knockback',
+            'PULL': 'Pull',
+            'CHILLING': 'Chilling',
+            'BURNING': 'Burning',
+            'SHOCKING': 'Shocking',
+            'POISON': 'Poison',
+            'CRIT_CHANCE': 'Crit Chance',
+            'CRIT_DAMAGE': 'Crit Damage',
+            'CHAIN': 'Chain',
+            'PIERCE': 'Pierce',
+            'ATKSPD': 'Attack Speed',
+            'INCREASE_COLLISION': 'Attack Size', // Fix for "Troll's"
+            'COOLDOWN_REDUC': 'Cooldown',
+            'CHARGE_REDUC': 'Charge Time',
+            'MANA_COST': 'Mana Cost',
+            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
+            'DEATH_FOOD': 'Food on Kill',
+            'SCALING': 'Projectile Count',
+            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
+        };
+
+        if (typeMap[mod.MODIFIER_TYPE]) {
+            return typeMap[mod.MODIFIER_TYPE];
+        }
+
+        // Fallback: Title Case the type
+        if (mod.MODIFIER_TYPE) {
+            return mod.MODIFIER_TYPE.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        return mod.Name || mod.Constant;
+    };
+
     return (
         <div
             id={cardId}
