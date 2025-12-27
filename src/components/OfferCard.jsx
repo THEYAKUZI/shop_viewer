@@ -12,9 +12,163 @@ const imgCache = new Map();
 // ...
 
 export default function OfferCard({ offer }) {
-    // ... (refs, logic)
+    const cardRef = useRef(null);
+    const [isCopying, setIsCopying] = useState(false);
+    const item = offer.items[0]; // Primary item
+    const { weapon, aesthetic, modifiers, detail } = item;
 
-    // ...
+    if (!weapon || !aesthetic) return null;
+
+    const iconUrl = `icons/${aesthetic.IconName}.png`;
+
+    const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
+    const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
+
+    const cardId = `offer-card-${offer.Id}`;
+
+    const handleCopy = async () => {
+        if (!cardRef.current || isCopying) return;
+        setIsCopying(true);
+
+        // Helper to convert image source to Data URL with caching
+        const toDataURL = async (src) => {
+            if (imgCache.has(src)) return imgCache.get(src);
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || 500;
+                    canvas.height = img.naturalHeight || 500;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    imgCache.set(src, dataUrl);
+                    resolve(dataUrl);
+                };
+                img.onerror = () => {
+                    resolve(null);
+                };
+                img.src = src;
+            });
+        };
+
+        const legendaryImg = cardRef.current.querySelector('.legendary-bg');
+        const weaponImg = cardRef.current.querySelector('.weapon-img');
+
+        try {
+            // Pre-load images concurrently
+            const [base64Leg, base64Wep] = await Promise.all([
+                legendaryImg ? toDataURL(legendaryImg.src || 'icons/legendary_bg.svg') : Promise.resolve(null),
+                weaponImg ? toDataURL(weaponImg.src) : Promise.resolve(null)
+            ]);
+
+            const captureCanvas = await html2canvas(cardRef.current, {
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#1a1a1a',
+                scale: 2,
+                onclone: (clonedDoc) => {
+                    // Find the SPECIFIC cloned card using the unique ID
+                    const clonedCard = clonedDoc.getElementById(cardId);
+                    if (!clonedCard) return;
+
+                    // Apply Safe Legendary BG
+                    if (base64Leg) {
+                        const bgEl = clonedCard.querySelector('.legendary-bg');
+                        if (bgEl) {
+                            bgEl.src = base64Leg;
+                            bgEl.style.animation = 'none';
+                            bgEl.style.transform = 'translate(-50%, -50%)';
+                            bgEl.style.width = '500%';
+                            bgEl.style.height = '500%';
+                        }
+                    }
+
+                    // Apply Safe Weapon Image
+                    if (base64Wep) {
+                        const wepEl = clonedCard.querySelector('.weapon-img');
+                        if (wepEl) {
+                            wepEl.src = base64Wep;
+                            wepEl.style.zIndex = '5';
+                            wepEl.style.position = 'relative';
+                        }
+                    }
+                }
+            });
+
+            navigateClipboardWrite(captureCanvas);
+
+        } catch (err) {
+            console.error('Screenshot failed:', err);
+            setIsCopying(false);
+        }
+    };
+
+    const navigateClipboardWrite = (canvas) => {
+        canvas.toBlob(async (blob) => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    setTimeout(() => setIsCopying(false), 2000);
+                } else {
+                    throw new Error('Clipboard API not available');
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('Failed to copy. ' + err.message);
+                setIsCopying(false);
+            }
+        });
+    };
+
+    const getModifierName = (mod) => {
+        if (mod.isLegendary) return mod.Name;
+
+        // Map for regular modifier types to friendly names
+        const typeMap = {
+            'DAMAGE': 'Damage',
+            'STUN': 'Stun',
+            'SLOW': 'Slow',
+            'CRIPPLE': 'Cripple',
+            'ROOT': 'Root',
+            'KNOCKBACK': 'Knockback',
+            'PULL': 'Pull',
+            'CHILLING': 'Chilling',
+            'BURNING': 'Burning',
+            'SHOCKING': 'Shocking',
+            'POISON': 'Poison',
+            'CRIT_CHANCE': 'Crit Chance',
+            'CRIT_DAMAGE': 'Crit Damage',
+            'CHAIN': 'Chain',
+            'PIERCE': 'Pierce',
+            'ATKSPD': 'Attack Speed',
+            'INCREASE_COLLISION': 'Attack Size',
+            'COOLDOWN_REDUC': 'Cooldown',
+            'CHARGE_REDUC': 'Charge Time',
+            'MANA_COST': 'Mana Cost',
+            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
+            'DEATH_FOOD': 'Food on Kill',
+            'SCALING': 'Projectile Count',
+            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
+        };
+
+        if (typeMap[mod.MODIFIER_TYPE]) {
+            return typeMap[mod.MODIFIER_TYPE];
+        }
+
+        // Fallback: Title Case the type
+        if (mod.MODIFIER_TYPE) {
+            return mod.MODIFIER_TYPE.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        return mod.Name || mod.Constant;
+    };
+
 
     const renderStars = (level) => {
         if (!level || level < 1) return null;
