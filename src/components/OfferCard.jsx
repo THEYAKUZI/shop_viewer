@@ -117,6 +117,7 @@ export default function OfferCard({ offer }) {
                         src={iconUrl}
                         className="weapon-img"
                         alt={aesthetic.Name}
+                        crossOrigin="anonymous" // Required for html2canvas
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/128?text=No+Icon' }}
                     />
                 </div>
@@ -227,6 +228,10 @@ export default function OfferCard({ offer }) {
                     border: 'none',
                     cursor: 'pointer',
                     color: isCopying ? '#4caf50' : '#888',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '2px',
                     padding: '4px',
                     transition: 'color 0.2s',
                     opacity: 0.7
@@ -244,6 +249,9 @@ export default function OfferCard({ offer }) {
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 )}
+                <span style={{ fontSize: '0.6rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    {isCopying ? 'Done' : 'Copy'}
+                </span>
             </button>
 
             <div className="dates">
