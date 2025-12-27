@@ -12,6 +12,8 @@
     font-family: 'Outfit', sans-serif;
     font-weight: 500;
     font-size: 0.9rem;
+    position: relative;
+    /* Ensure positioning context */
 }
 
 .like-btn:hover {
@@ -42,6 +44,30 @@
 .like-count {
     min-width: 15px;
     text-align: left;
+}
+
+/* Hover Label for Like Button */
+.hover-label {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    z-index: 20;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.like-btn:hover .hover-label {
+    opacity: 1;
 }
 
 /* Heart pop animation */

@@ -37,6 +37,7 @@ export default function LikeButton({ offerId }) {
                 </svg>
             </div>
             <span className="like-count">{data.count}</span>
+            <div className="hover-label">RECOMMEND</div>
         </button>
     );
 }
