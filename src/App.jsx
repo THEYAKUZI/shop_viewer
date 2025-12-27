@@ -13,6 +13,7 @@ import VisitorStats from './components/VisitorStats';
 import { translations } from './utils/translations';
 
 function App() {
+  console.log("Rampage Shop Viewer v1.1 Loaded - Debug check");
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
