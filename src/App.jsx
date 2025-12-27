@@ -11,7 +11,6 @@ import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
 
 function App() {
-  console.log("Revert Finalized - v1.3");
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
@@ -51,7 +50,7 @@ function App() {
                 value: key,
                 isLegendary: true,
                 iconName: mod.IconName,
-                description: mod.Description
+                description: mod.Description // Added description
               });
             }
           } else if (mod.MODIFIER_TYPE) {
@@ -64,7 +63,7 @@ function App() {
                 value: key,
                 isLegendary: false,
                 iconName: mod.IconName,
-                description: mod.Description
+                description: mod.Description // Added description
               });
             }
           }
@@ -379,9 +378,9 @@ function App() {
                 zIndex: -1,
                 opacity: 0.8,
                 pointerEvents: 'none',
-                filter: 'drop-shadow(0 0 5px #00aaff)'
+                filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
-              <span className="pulse-dot" style={{ backgroundColor: '#00aaff' }}></span>
+              <span className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-blue)' }}></span>
               Coming Soon
             </h2>
             <div className="section-line"></div>
@@ -390,7 +389,7 @@ function App() {
           {filteredData.comingSoon.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
           ) : (
-            <div className="grid-layout" style={{ opacity: 0.7 }}>
+            <div className="grid-layout" style={{ opacity: 0.85 }}>
               {filteredData.comingSoon.map(offer => (
                 <OfferCard key={offer.Id} offer={offer} />
               ))}

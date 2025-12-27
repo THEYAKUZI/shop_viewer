@@ -5,12 +5,6 @@ import html2canvas from 'html2canvas';
 // Cache to store Data URLs for images to speed up repeated copies
 const imgCache = new Map();
 
-// ... imports
-// import translations just in case or rely on prop
-// ... imports
-
-// ...
-
 export default function OfferCard({ offer }) {
     const cardRef = useRef(null);
     const [isCopying, setIsCopying] = useState(false);
@@ -124,52 +118,6 @@ export default function OfferCard({ offer }) {
         });
     };
 
-    const getModifierName = (mod) => {
-        if (mod.isLegendary) return mod.Name;
-
-        // Map for regular modifier types to friendly names
-        const typeMap = {
-            'DAMAGE': 'Damage',
-            'STUN': 'Stun',
-            'SLOW': 'Slow',
-            'CRIPPLE': 'Cripple',
-            'ROOT': 'Root',
-            'KNOCKBACK': 'Knockback',
-            'PULL': 'Pull',
-            'CHILLING': 'Chilling',
-            'BURNING': 'Burning',
-            'SHOCKING': 'Shocking',
-            'POISON': 'Poison',
-            'CRIT_CHANCE': 'Crit Chance',
-            'CRIT_DAMAGE': 'Crit Damage',
-            'CHAIN': 'Chain',
-            'PIERCE': 'Pierce',
-            'ATKSPD': 'Attack Speed',
-            'INCREASE_COLLISION': 'Attack Size',
-            'COOLDOWN_REDUC': 'Cooldown',
-            'CHARGE_REDUC': 'Charge Time',
-            'MANA_COST': 'Mana Cost',
-            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
-            'DEATH_FOOD': 'Food on Kill',
-            'SCALING': 'Projectile Count',
-            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
-        };
-
-        if (typeMap[mod.MODIFIER_TYPE]) {
-            return typeMap[mod.MODIFIER_TYPE];
-        }
-
-        // Fallback: Title Case the type
-        if (mod.MODIFIER_TYPE) {
-            return mod.MODIFIER_TYPE.split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
-        return mod.Name || mod.Constant;
-    };
-
-
     const renderStars = (level) => {
         if (!level || level < 1) return null;
         return (
@@ -200,7 +148,50 @@ export default function OfferCard({ offer }) {
         );
     };
 
-    // ...
+    const getModifierName = (mod) => {
+        if (mod.isLegendary) return mod.Name;
+
+        // Map for regular modifier types to friendly names
+        const typeMap = {
+            'DAMAGE': 'Damage',
+            'STUN': 'Stun',
+            'SLOW': 'Slow',
+            'CRIPPLE': 'Cripple',
+            'ROOT': 'Root',
+            'KNOCKBACK': 'Knockback',
+            'PULL': 'Pull',
+            'CHILLING': 'Chilling',
+            'BURNING': 'Burning',
+            'SHOCKING': 'Shocking',
+            'POISON': 'Poison',
+            'CRIT_CHANCE': 'Crit Chance',
+            'CRIT_DAMAGE': 'Crit Damage',
+            'CHAIN': 'Chain',
+            'PIERCE': 'Pierce',
+            'ATKSPD': 'Attack Speed',
+            'INCREASE_COLLISION': 'Attack Size', // Fix for "Troll's"
+            'COOLDOWN_REDUC': 'Cooldown',
+            'CHARGE_REDUC': 'Charge Time',
+            'MANA_COST': 'Mana Cost',
+            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
+            'DEATH_FOOD': 'Food on Kill',
+            'SCALING': 'Projectile Count',
+            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
+        };
+
+        if (typeMap[mod.MODIFIER_TYPE]) {
+            return typeMap[mod.MODIFIER_TYPE];
+        }
+
+        // Fallback: Title Case the type
+        if (mod.MODIFIER_TYPE) {
+            return mod.MODIFIER_TYPE.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        return mod.Name || mod.Constant;
+    };
 
     return (
         <div
@@ -209,7 +200,36 @@ export default function OfferCard({ offer }) {
             className="offer-card"
             style={{ borderColor, boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none' }}
         >
-            {/* ... */}
+            <div className="card-icon">
+                <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`}>
+                    {isLegendary && (
+                        <img
+                            src="icons/legendary_bg.svg"
+                            className="legendary-bg"
+                            alt=""
+                        />
+                    )}
+                    <img
+                        src={iconUrl}
+                        className="weapon-img"
+                        alt={aesthetic.Name}
+                        crossOrigin="anonymous"
+                        onError={(e) => { e.target.src = 'https://via.placeholder.com/128?text=No+Icon' }}
+                    />
+                </div>
+            </div>
+            {isLegendary && <div className="legendary-badge">LEGENDARY</div>}
+
+            <div className="card-title" style={{
+                color: isLegendary ? 'var(--color-rarity-legendary)' : 'white',
+                textShadow: isLegendary ? '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none',
+                letterSpacing: '1px'
+            }}>
+                {offer.name}
+            </div>
+            <div className="card-subtitle">
+                {aesthetic.Name}
+            </div>
 
             <div className="card-stats">
                 <div className="stat-row">
@@ -245,16 +265,16 @@ export default function OfferCard({ offer }) {
                                 background: 'rgba(255,255,255,0.05)',
                                 padding: '6px',
                                 borderRadius: '4px',
-                                position: 'relative'
+                                position: 'relative' // For tooltip if we add one properly
                             }}
-                                title={mod.Description}
+                                title={mod.Description} // Native tooltip
                             >
-                                {/* ... Icon ... */}
+                                {/* Modifier Icon */}
                                 {mod.IconName && (
                                     <img
                                         src={`icons/${mod.IconName}.png`}
                                         style={{ width: '24px', height: '24px' }}
-                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                        onError={(e) => { e.target.style.display = 'none'; }} // Hide if missing
                                         alt=""
                                     />
                                 )}
@@ -274,12 +294,9 @@ export default function OfferCard({ offer }) {
                 )}
             </div>
 
-            {/* Price ... */}
             <div className="price-tag">
-                {/* ... */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     {item.price.toLocaleString()}
-                    {/* ... */}
                     <img
                         src="icons/doober_coin.png"
                         style={{ width: '28px', height: '28px', verticalAlign: 'middle' }}
@@ -290,12 +307,6 @@ export default function OfferCard({ offer }) {
 
             {/* Like Button */}
             <div style={{ position: 'absolute', top: '40px', right: '10px', zIndex: 10 }}>
-                {/* We might need to pass translation to LikeButton too for 'RECOMMEND' text. 
-                    I'll check LikeButton implementation. It has "RECOMMEND" hardcoded.
-                    I will update LikeButton to accept a label or children, OR just update the hovered text via css content?
-                    CSS content can't take dynamic props unless via var().
-                    Wait, "RECOMMEND" is in a div in LikeButton.jsx.
-                */}
                 <LikeButton offerId={offer.Id} />
             </div>
 
@@ -328,7 +339,7 @@ export default function OfferCard({ offer }) {
                 ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 )}
                 <div className="hover-label-copy">COPY</div>
