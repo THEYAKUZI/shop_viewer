@@ -19,21 +19,20 @@ export default function OfferCard({ offer }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        const captureId = `capture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        cardRef.current.setAttribute('data-capture-id', captureId);
-
         // Check if this card has a legendary background
         const hasLegendaryBg = cardRef.current.querySelector('.legendary-bg');
         let pngUrl = null;
 
         try {
-            // Generate PNG if needed
+            // If legendary, generate a fresh PNG from the source SVG file
+            // We use a fresh Image object to avoid any DOM reuse/tainting/ID collision issues
             if (hasLegendaryBg) {
                 try {
                     await new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
+                            // Use fixed high-res dimensions for the texture
                             canvas.width = 1000;
                             canvas.height = 1000;
                             const ctx = canvas.getContext('2d');
@@ -42,6 +41,7 @@ export default function OfferCard({ offer }) {
                             resolve();
                         };
                         img.onerror = () => {
+                            console.warn("Failed to load legendary bg for screenshot");
                             resolve();
                         };
                         img.src = 'icons/legendary_bg.svg';
@@ -57,31 +57,20 @@ export default function OfferCard({ offer }) {
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 onclone: (clonedDoc) => {
-                    // Find the specific card in the clone
-                    const clonedCard = clonedDoc.querySelector(`[data-capture-id="${captureId}"]`);
-                    if (!clonedCard) return;
-
-                    // Inject the pre-converted PNG into this specific card
+                    // Inject the pre-converted PNG into the clone
                     if (pngUrl) {
-                        const clonedBg = clonedCard.querySelector('.legendary-bg');
-                        const clonedFrame = clonedCard.querySelector('.icon-frame.legendary');
-
+                        const clonedBg = clonedDoc.querySelector('.legendary-bg');
                         if (clonedBg) {
-                            // Hide the original image element to prevent issues
-                            clonedBg.style.display = 'none';
-                        }
-
-                        if (clonedFrame) {
-                            // Apply PNG as background image
-                            clonedFrame.style.backgroundImage = `url(${pngUrl})`;
-                            clonedFrame.style.backgroundPosition = 'center';
-                            clonedFrame.style.backgroundSize = '500%'; // Match the 500% zoom
-                            clonedFrame.style.backgroundRepeat = 'no-repeat';
+                            clonedBg.src = pngUrl;
+                            clonedBg.style.animation = 'none';
+                            clonedBg.style.transform = 'translate(-50%, -50%)'; // Maintain centering
+                            clonedBg.style.width = '500%'; // Maintain size
+                            clonedBg.style.height = '500%';
                         }
                     }
 
                     // Ensure the weapon image stays on top
-                    const weaponImg = clonedCard.querySelector('.weapon-img');
+                    const weaponImg = clonedDoc.querySelector('.weapon-img');
                     if (weaponImg) {
                         weaponImg.style.zIndex = '5';
                         weaponImg.style.position = 'relative';
@@ -107,11 +96,6 @@ export default function OfferCard({ offer }) {
         } catch (err) {
             console.error('Screenshot failed:', err);
             setIsCopying(false);
-        } finally {
-            // cleanup
-            if (cardRef.current) {
-                cardRef.current.removeAttribute('data-capture-id');
-            }
         }
     };
 
@@ -188,6 +172,7 @@ export default function OfferCard({ offer }) {
                         src={iconUrl}
                         className="weapon-img"
                         alt={aesthetic.Name}
+                        crossOrigin="anonymous"
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/128?text=No+Icon' }}
                     />
                 </div>
