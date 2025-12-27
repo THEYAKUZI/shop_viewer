@@ -11,6 +11,7 @@ export default function OfferCard({ offer }) {
     if (!weapon || !aesthetic) return null;
 
     const iconUrl = `icons/${aesthetic.IconName}.png`;
+
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
 
@@ -20,65 +21,31 @@ export default function OfferCard({ offer }) {
 
         try {
             const canvas = await html2canvas(cardRef.current, {
-                backgroundColor: null, // Transparent background
-                scale: 2, // High resolution
-                useCORS: true, // Attempt to load cross-origin images (icons)
-                logging: true,
-                onclone: (clonedDoc, element) => {
-                    // Critical: Reset transforms on the CLONED element to prevent hover/clipping issues
-                    element.style.transform = 'none';
-                    element.style.transition = 'none';
-                    element.style.margin = '20px'; // Add margin to capture shadow
-                    element.style.boxShadow = isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none'; // Force consistent shadow
-
-                    // Hide the copy button in the clone
-                    const btn = element.querySelector('button');
-                    if (btn) btn.style.display = 'none';
-                },
-                x: -20, // Offset x to account for margin added in onclone
-                y: -20, // Offset y
-                width: cardRef.current.offsetWidth + 40, // Capture slightly larger area
-                height: cardRef.current.offsetHeight + 40
+                useCORS: true,
+                backgroundColor: '#1a1a1a', // Ensure dark background is captured if transparent
+                scale: 2 // Higher resolution
             });
 
             canvas.toBlob(async (blob) => {
-                if (!blob) throw new Error('Failed to generate blob');
                 try {
-                    if (navigator.clipboard) {
+                    if (navigator.clipboard && navigator.clipboard.write) {
                         const item = new ClipboardItem({ 'image/png': blob });
                         await navigator.clipboard.write([item]);
-                        setTimeout(() => setIsCopying(false), 2000);
+                        // Feedback
+                        setTimeout(() => setIsCopying(false), 2000); // Reset after 2s
                     } else {
-                        throw new Error('Clipboard API unavailable');
+                        throw new Error('Clipboard API not available');
                     }
                 } catch (err) {
-                    console.error('Clipboard write failed:', err);
-                    alert('Failed to copy image. ' + err.message);
+                    console.error('Failed to copy to clipboard:', err);
+                    alert('Failed to copy image to clipboard. Please try again.');
                     setIsCopying(false);
                 }
             });
         } catch (err) {
-            console.error('html2canvas failed:', err);
-            alert('Screenshot failed: ' + err.message);
+            console.error('Screenshot failed:', err);
             setIsCopying(false);
         }
-    };
-
-    // Helper to get friendly names
-    const getModifierName = (mod) => {
-        if (mod.isLegendary) return mod.Name;
-        const typeMap = {
-            'DAMAGE': 'Damage', 'STUN': 'Stun', 'SLOW': 'Slow', 'CRIPPLE': 'Cripple',
-            'ROOT': 'Root', 'KNOCKBACK': 'Knockback', 'PULL': 'Pull', 'CHILLING': 'Chilling',
-            'BURNING': 'Burning', 'SHOCKING': 'Shocking', 'POISON': 'Poison', 'CRIT_CHANCE': 'Crit Chance',
-            'CRIT_DAMAGE': 'Crit Damage', 'CHAIN': 'Chain', 'PIERCE': 'Pierce', 'ATKSPD': 'Attack Speed',
-            'INCREASE_COLLISION': 'Attack Size', 'COOLDOWN_REDUC': 'Cooldown', 'CHARGE_REDUC': 'Charge Time',
-            'MANA_COST': 'Mana Cost', 'SPAWN_FOOD_ON_HIT': 'Food on Hit', 'DEATH_FOOD': 'Food on Kill',
-            'SCALING': 'Projectile Count', 'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
-        };
-        if (typeMap[mod.MODIFIER_TYPE]) return typeMap[mod.MODIFIER_TYPE];
-        if (mod.MODIFIER_TYPE) return mod.MODIFIER_TYPE.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-        return mod.Name || mod.Constant;
     };
 
     const renderStars = (level) => {
@@ -88,6 +55,51 @@ export default function OfferCard({ offer }) {
                 {'★'.repeat(level)}
             </span>
         );
+    };
+
+    const getModifierName = (mod) => {
+        if (mod.isLegendary) return mod.Name;
+
+        // Map for regular modifier types to friendly names
+        const typeMap = {
+            'DAMAGE': 'Damage',
+            'STUN': 'Stun',
+            'SLOW': 'Slow',
+            'CRIPPLE': 'Cripple',
+            'ROOT': 'Root',
+            'KNOCKBACK': 'Knockback',
+            'PULL': 'Pull',
+            'CHILLING': 'Chilling',
+            'BURNING': 'Burning',
+            'SHOCKING': 'Shocking',
+            'POISON': 'Poison',
+            'CRIT_CHANCE': 'Crit Chance',
+            'CRIT_DAMAGE': 'Crit Damage',
+            'CHAIN': 'Chain',
+            'PIERCE': 'Pierce',
+            'ATKSPD': 'Attack Speed',
+            'INCREASE_COLLISION': 'Attack Size', // Fix for "Troll's"
+            'COOLDOWN_REDUC': 'Cooldown',
+            'CHARGE_REDUC': 'Charge Time',
+            'MANA_COST': 'Mana Cost',
+            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
+            'DEATH_FOOD': 'Food on Kill',
+            'SCALING': 'Projectile Count',
+            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
+        };
+
+        if (typeMap[mod.MODIFIER_TYPE]) {
+            return typeMap[mod.MODIFIER_TYPE];
+        }
+
+        // Fallback: Title Case the type
+        if (mod.MODIFIER_TYPE) {
+            return mod.MODIFIER_TYPE.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        return mod.Name || mod.Constant;
     };
 
     return (
@@ -156,16 +168,16 @@ export default function OfferCard({ offer }) {
                                 background: 'rgba(255,255,255,0.05)',
                                 padding: '6px',
                                 borderRadius: '4px',
-                                position: 'relative'
+                                position: 'relative' // For tooltip if we add one properly
                             }}
-                                title={mod.Description}
+                                title={mod.Description} // Native tooltip
                             >
                                 {/* Modifier Icon */}
                                 {mod.IconName && (
                                     <img
                                         src={`icons/${mod.IconName}.png`}
                                         style={{ width: '24px', height: '24px' }}
-                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                        onError={(e) => { e.target.style.display = 'none'; }} // Hide if missing
                                         alt=""
                                     />
                                 )}
@@ -215,10 +227,6 @@ export default function OfferCard({ offer }) {
                     border: 'none',
                     cursor: 'pointer',
                     color: isCopying ? '#4caf50' : '#888',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '2px',
                     padding: '4px',
                     transition: 'color 0.2s',
                     opacity: 0.7
@@ -236,9 +244,6 @@ export default function OfferCard({ offer }) {
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 )}
-                <span style={{ fontSize: '0.6rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                    {isCopying ? 'Done' : 'Copy'}
-                </span>
             </button>
 
             <div className="dates">
