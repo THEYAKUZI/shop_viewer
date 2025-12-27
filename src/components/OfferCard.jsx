@@ -25,18 +25,23 @@ export default function OfferCard({ offer }) {
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 onclone: (clonedDoc) => {
-                    // Fix for legendary background interfering with capture
+                    // Fix for legendary background: Disable animation/transform so html2canvas renders it correctly
                     const legendaryBg = clonedDoc.querySelector('.legendary-bg');
                     if (legendaryBg) {
-                        // Remove the problematic animated SVG from the clone
-                        legendaryBg.style.display = 'none';
+                        legendaryBg.style.animation = 'none';
+                        legendaryBg.style.transform = 'none';
+                        legendaryBg.style.width = '100%';
+                        legendaryBg.style.height = '100%';
+                        legendaryBg.style.top = '0';
+                        legendaryBg.style.left = '0';
+                        legendaryBg.style.display = 'block';
+                    }
 
-                        // Add a static CSS fallback so it still looks legendary
-                        const frame = clonedDoc.querySelector('.icon-frame.legendary');
-                        if (frame) {
-                            frame.style.background = 'radial-gradient(circle, rgba(191,0,255,0.4) 0%, rgba(0,0,0,0) 70%)';
-                            frame.style.boxShadow = 'inset 0 0 20px rgba(191,0,255,0.3)';
-                        }
+                    // Ensure the weapon image stays on top with explicit stacking
+                    const weaponImg = clonedDoc.querySelector('.weapon-img');
+                    if (weaponImg) {
+                        weaponImg.style.zIndex = '5';
+                        weaponImg.style.position = 'relative';
                     }
                 }
             });
