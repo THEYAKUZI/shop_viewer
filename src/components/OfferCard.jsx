@@ -19,28 +19,39 @@ export default function OfferCard({ offer }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
+        const legendaryBg = cardRef.current.querySelector('.legendary-bg');
+        let originalSrc = null;
+
         try {
-            const canvas = await html2canvas(cardRef.current, {
+            // Attempt to convert SVG to PNG for better capture
+            if (legendaryBg) {
+                originalSrc = legendaryBg.src;
+                try {
+                    const canvas = document.createElement('canvas');
+                    // Ensure canvas has dimensions. SVGs might default to 300x150 or 0 if not set.
+                    // We assume the strict 500% size in CSS translates to something we can read, 
+                    // but naturalWidth is safer for the source asset.
+                    canvas.width = legendaryBg.naturalWidth || 1000;
+                    canvas.height = legendaryBg.naturalHeight || 1000;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(legendaryBg, 0, 0, canvas.width, canvas.height);
+                    const pngUrl = canvas.toDataURL('image/png');
+                    legendaryBg.src = pngUrl;
+                } catch (e) {
+                    console.warn("Failed to convert SVG to PNG:", e);
+                }
+            }
+
+            // Small delay to ensure the new src renders
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            const captureCanvas = await html2canvas(cardRef.current, {
                 useCORS: true,
+                allowTaint: true, // Allow local tainting if needed
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 onclone: (clonedDoc) => {
-                    // Fix: Hide the animated SVG img and apply it as a static background image
-                    // This prevents z-index fighting and animation issues in the screenshot
-                    const legendaryBg = clonedDoc.querySelector('.legendary-bg');
-                    if (legendaryBg) {
-                        legendaryBg.style.display = 'none';
-                    }
-
-                    const frame = clonedDoc.querySelector('.icon-frame.legendary');
-                    if (frame) {
-                        frame.style.backgroundImage = 'url("icons/legendary_bg.svg")';
-                        frame.style.backgroundSize = '100% 100%';
-                        frame.style.backgroundPosition = 'center';
-                        frame.style.backgroundRepeat = 'no-repeat';
-                    }
-
-                    // Ensure the weapon image stays on top with explicit stacking
+                    // Force the weapon image to be on top in the clone as well
                     const weaponImg = clonedDoc.querySelector('.weapon-img');
                     if (weaponImg) {
                         weaponImg.style.zIndex = '5';
@@ -49,13 +60,12 @@ export default function OfferCard({ offer }) {
                 }
             });
 
-            canvas.toBlob(async (blob) => {
+            captureCanvas.toBlob(async (blob) => {
                 try {
                     if (navigator.clipboard && navigator.clipboard.write) {
                         const item = new ClipboardItem({ 'image/png': blob });
                         await navigator.clipboard.write([item]);
-                        // Feedback
-                        setTimeout(() => setIsCopying(false), 2000); // Reset after 2s
+                        setTimeout(() => setIsCopying(false), 2000);
                     } else {
                         throw new Error('Clipboard API not available');
                     }
@@ -68,6 +78,11 @@ export default function OfferCard({ offer }) {
         } catch (err) {
             console.error('Screenshot failed:', err);
             setIsCopying(false);
+        } finally {
+            // Restore original SVG immediately
+            if (legendaryBg && originalSrc) {
+                legendaryBg.src = originalSrc;
+            }
         }
     };
 
