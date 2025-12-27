@@ -110,9 +110,9 @@ export default function OfferCard({ offer }) {
         >
             <div className="card-icon">
                 <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`}>
-                    {isLegendary && (
+                    {/* {isLegendary && (
                         <img src="icons/legendary_bg.svg" className="legendary-bg" alt="" />
-                    )}
+                    )} */}
                     <img
                         src={iconUrl}
                         className="weapon-img"
