@@ -102,3 +102,14 @@
         right: 10px;
     }
 }
+
+/* Invisible bridge to prevent menu closing when moving from button to dropdown */
+.language-selector::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px;
+    height: 20px;
+    z-index: 10;
+}
