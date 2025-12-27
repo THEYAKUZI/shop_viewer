@@ -137,7 +137,7 @@ export default function OfferCard({ offer }) {
                     <span style={{
                         fontSize: '0.6rem',
                         color: '#ffaa00',
-                        marginLeft: '5px',
+                        marginLeft: '8px',
                         fontWeight: 'bold',
                         letterSpacing: '0.5px'
                     }}>
