@@ -22,15 +22,15 @@ export default function OfferCard({ offer }) {
             const blob = await toBlob(cardRef.current, {
                 // background: transparent
                 pixelRatio: 2,
-                // Add a large buffer to ensure no part of the glow is cut off
-                width: cardRef.current.offsetWidth + 100,
-                height: cardRef.current.offsetHeight + 100,
+                // Buffer for shadow (20px each side is enough for resting state)
+                width: cardRef.current.offsetWidth + 40,
+                height: cardRef.current.offsetHeight + 40,
                 style: {
                     transform: 'none', // Kill hover lift
                     transition: 'none', // Kill transition
-                    margin: '50px',    // Big margin to center in big canvas
-                    // Force the resting 'glow' explicitly
-                    boxShadow: isLegendary ? '0 0 20px 5px rgba(191, 0, 255, 0.6)' : 'none',
+                    margin: '20px',    // Centered
+                    // Use the exact CSS-defined shadow for resting state (no hover bloom)
+                    boxShadow: isLegendary ? '0 0 15px rgba(170, 0, 255, 0.5)' : 'none',
                     borderColor: borderColor
                 },
                 filter: (node) => {
