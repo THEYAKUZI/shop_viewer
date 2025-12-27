@@ -8,7 +8,9 @@ const imgCache = new Map();
 export default function OfferCard({ offer, isMostRecommended }) {
     const cardRef = useRef(null);
     const [isCopying, setIsCopying] = useState(false);
-    const item = offer.items[0]; // Primary item
+    const item = offer.items && offer.items[0]; // Primary item
+    if (!item) return null;
+
     const { weapon, aesthetic, modifiers, detail } = item;
 
     if (!weapon || !aesthetic) return null;
