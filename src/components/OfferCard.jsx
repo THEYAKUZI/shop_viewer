@@ -15,41 +15,39 @@ export default function OfferCard({ offer }) {
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
 
+    const cardId = `offer-card-${offer.Id}`;
+
     const handleCopy = async () => {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        // Check if this card has a legendary background
-        const hasLegendaryBg = cardRef.current.querySelector('.legendary-bg');
-        let pngUrl = null;
+        // Helper to convert image source to Data URL
+        const toDataURL = async (src) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous'; // Try anonymous for external calls
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || 500;
+                    canvas.height = img.naturalHeight || 500;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        };
+
+        const legendaryImg = cardRef.current.querySelector('.legendary-bg');
+        const weaponImg = cardRef.current.querySelector('.weapon-img');
 
         try {
-            // If legendary, generate a fresh PNG from the source SVG file
-            // We use a fresh Image object to avoid any DOM reuse/tainting/ID collision issues
-            if (hasLegendaryBg) {
-                try {
-                    await new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            // Use fixed high-res dimensions for the texture
-                            canvas.width = 1000;
-                            canvas.height = 1000;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            pngUrl = canvas.toDataURL('image/png');
-                            resolve();
-                        };
-                        img.onerror = () => {
-                            console.warn("Failed to load legendary bg for screenshot");
-                            resolve();
-                        };
-                        img.src = 'icons/legendary_bg.svg';
-                    });
-                } catch (e) {
-                    console.warn("Error during SVG conversion:", e);
-                }
-            }
+            // Pre-load images concurrently
+            const [base64Leg, base64Wep] = await Promise.all([
+                legendaryImg ? toDataURL(legendaryImg.src || 'icons/legendary_bg.svg') : Promise.resolve(null),
+                weaponImg ? toDataURL(weaponImg.src) : Promise.resolve(null)
+            ]);
 
             const captureCanvas = await html2canvas(cardRef.current, {
                 useCORS: true,
@@ -57,104 +55,63 @@ export default function OfferCard({ offer }) {
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 onclone: (clonedDoc) => {
-                    // Inject the pre-converted PNG into the clone
-                    if (pngUrl) {
-                        const clonedBg = clonedDoc.querySelector('.legendary-bg');
-                        if (clonedBg) {
-                            clonedBg.src = pngUrl;
-                            clonedBg.style.animation = 'none';
-                            clonedBg.style.transform = 'translate(-50%, -50%)'; // Maintain centering
-                            clonedBg.style.width = '500%'; // Maintain size
-                            clonedBg.style.height = '500%';
+                    // Find the SPECIFIC cloned card using the unique ID
+                    const clonedCard = clonedDoc.getElementById(cardId);
+                    if (!clonedCard) return;
+
+                    // Apply Safe Legendary BG
+                    if (base64Leg) {
+                        const bgEl = clonedCard.querySelector('.legendary-bg');
+                        if (bgEl) {
+                            bgEl.src = base64Leg;
+                            bgEl.style.animation = 'none';
+                            bgEl.style.transform = 'translate(-50%, -50%)';
+                            bgEl.style.width = '500%';
+                            bgEl.style.height = '500%';
                         }
                     }
 
-                    // Ensure the weapon image stays on top
-                    const weaponImg = clonedDoc.querySelector('.weapon-img');
-                    if (weaponImg) {
-                        weaponImg.style.zIndex = '5';
-                        weaponImg.style.position = 'relative';
+                    // Apply Safe Weapon Image
+                    if (base64Wep) {
+                        const wepEl = clonedCard.querySelector('.weapon-img');
+                        if (wepEl) {
+                            wepEl.src = base64Wep;
+                            wepEl.style.zIndex = '5';
+                            wepEl.style.position = 'relative';
+                        }
                     }
                 }
             });
 
-            captureCanvas.toBlob(async (blob) => {
-                try {
-                    if (navigator.clipboard && navigator.clipboard.write) {
-                        const item = new ClipboardItem({ 'image/png': blob });
-                        await navigator.clipboard.write([item]);
-                        setTimeout(() => setIsCopying(false), 2000);
-                    } else {
-                        throw new Error('Clipboard API not available');
-                    }
-                } catch (err) {
-                    console.error('Failed to copy to clipboard:', err);
-                    alert('Failed to copy image to clipboard. Please try again.');
-                    setIsCopying(false);
-                }
-            });
+            navigateClipboardWrite(captureCanvas);
+
         } catch (err) {
             console.error('Screenshot failed:', err);
             setIsCopying(false);
         }
     };
 
-    const renderStars = (level) => {
-        if (!level || level < 1) return null;
-        return (
-            <span style={{ color: '#ffcc00', marginLeft: '4px' }}>
-                {'★'.repeat(level)}
-            </span>
-        );
-    };
-
-    const getModifierName = (mod) => {
-        if (mod.isLegendary) return mod.Name;
-
-        // Map for regular modifier types to friendly names
-        const typeMap = {
-            'DAMAGE': 'Damage',
-            'STUN': 'Stun',
-            'SLOW': 'Slow',
-            'CRIPPLE': 'Cripple',
-            'ROOT': 'Root',
-            'KNOCKBACK': 'Knockback',
-            'PULL': 'Pull',
-            'CHILLING': 'Chilling',
-            'BURNING': 'Burning',
-            'SHOCKING': 'Shocking',
-            'POISON': 'Poison',
-            'CRIT_CHANCE': 'Crit Chance',
-            'CRIT_DAMAGE': 'Crit Damage',
-            'CHAIN': 'Chain',
-            'PIERCE': 'Pierce',
-            'ATKSPD': 'Attack Speed',
-            'INCREASE_COLLISION': 'Attack Size', // Fix for "Troll's"
-            'COOLDOWN_REDUC': 'Cooldown',
-            'CHARGE_REDUC': 'Charge Time',
-            'MANA_COST': 'Mana Cost',
-            'SPAWN_FOOD_ON_HIT': 'Food on Hit',
-            'DEATH_FOOD': 'Food on Kill',
-            'SCALING': 'Projectile Count',
-            'BUFF_GRANT_DURATION_MULTIPLIER': 'Buff Duration'
-        };
-
-        if (typeMap[mod.MODIFIER_TYPE]) {
-            return typeMap[mod.MODIFIER_TYPE];
-        }
-
-        // Fallback: Title Case the type
-        if (mod.MODIFIER_TYPE) {
-            return mod.MODIFIER_TYPE.split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
-        return mod.Name || mod.Constant;
+    const navigateClipboardWrite = (canvas) => {
+        canvas.toBlob(async (blob) => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    setTimeout(() => setIsCopying(false), 2000);
+                } else {
+                    throw new Error('Clipboard API not available');
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('Failed to copy. ' + err.message);
+                setIsCopying(false);
+            }
+        });
     };
 
     return (
         <div
+            id={cardId}
             ref={cardRef}
             className="offer-card"
             style={{ borderColor, boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none' }}
