@@ -20,38 +20,41 @@ export default function OfferCard({ offer }) {
         setIsCopying(true);
 
         const legendaryBg = cardRef.current.querySelector('.legendary-bg');
-        let originalSrc = null;
+        let pngUrl = null;
 
         try {
-            // Attempt to convert SVG to PNG for better capture
+            // Pre-convert SVG to PNG Data URL
             if (legendaryBg) {
-                originalSrc = legendaryBg.src;
                 try {
                     const canvas = document.createElement('canvas');
-                    // Ensure canvas has dimensions. SVGs might default to 300x150 or 0 if not set.
-                    // We assume the strict 500% size in CSS translates to something we can read, 
-                    // but naturalWidth is safer for the source asset.
+                    // Use natural dimensions or fallback to a reasonable high-res size
                     canvas.width = legendaryBg.naturalWidth || 1000;
                     canvas.height = legendaryBg.naturalHeight || 1000;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(legendaryBg, 0, 0, canvas.width, canvas.height);
-                    const pngUrl = canvas.toDataURL('image/png');
-                    legendaryBg.src = pngUrl;
+                    pngUrl = canvas.toDataURL('image/png');
                 } catch (e) {
-                    console.warn("Failed to convert SVG to PNG:", e);
+                    console.warn("Failed to generate PNG from SVG:", e);
                 }
             }
 
-            // Small delay to ensure the new src renders
-            await new Promise(resolve => setTimeout(resolve, 50));
-
             const captureCanvas = await html2canvas(cardRef.current, {
                 useCORS: true,
-                allowTaint: true, // Allow local tainting if needed
+                allowTaint: true,
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 onclone: (clonedDoc) => {
-                    // Force the weapon image to be on top in the clone as well
+                    // Inject the pre-converted PNG into the clone
+                    if (pngUrl) {
+                        const clonedBg = clonedDoc.querySelector('.legendary-bg');
+                        if (clonedBg) {
+                            clonedBg.src = pngUrl;
+                            // Disable animation in the clone to ensure clean capture
+                            clonedBg.style.animation = 'none';
+                        }
+                    }
+
+                    // Ensure the weapon image stays on top
                     const weaponImg = clonedDoc.querySelector('.weapon-img');
                     if (weaponImg) {
                         weaponImg.style.zIndex = '5';
@@ -78,11 +81,6 @@ export default function OfferCard({ offer }) {
         } catch (err) {
             console.error('Screenshot failed:', err);
             setIsCopying(false);
-        } finally {
-            // Restore original SVG immediately
-            if (legendaryBg && originalSrc) {
-                legendaryBg.src = originalSrc;
-            }
         }
     };
 
@@ -149,7 +147,12 @@ export default function OfferCard({ offer }) {
             <div className="card-icon">
                 <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`}>
                     {isLegendary && (
-                        <img src="icons/legendary_bg.svg" className="legendary-bg" alt="" />
+                        <img
+                            src="icons/legendary_bg.svg"
+                            className="legendary-bg"
+                            alt=""
+                            crossOrigin="anonymous"
+                        />
                     )}
                     <img
                         src={iconUrl}
