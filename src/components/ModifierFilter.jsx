@@ -1,7 +1,9 @@
 import React from 'react';
 import './ModifierFilter.css';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ModifierFilter = ({ options, selected, onChange }) => {
+    const { t } = useLanguage();
     if (!options || options.length === 0) return null;
 
     const toggleOption = (option) => {
@@ -28,7 +30,7 @@ const ModifierFilter = ({ options, selected, onChange }) => {
                         key={opt.value}
                         className={`mod-btn ${opt.isLegendary ? 'legendary' : ''} ${selected.includes(opt.value) ? 'active' : ''}`}
                         onClick={() => toggleOption(opt)}
-                        title={opt.description || opt.label} // Native tooltip
+                        title={t(opt.description || opt.label)} // Try translating description
                     >
                         {opt.iconName && (
                             <img
@@ -38,13 +40,13 @@ const ModifierFilter = ({ options, selected, onChange }) => {
                                 onError={(e) => { e.target.style.display = 'none' }}
                             />
                         )}
-                        {opt.label}
+                        {t(opt.label)}
                     </button>
                 ))}
             </div>
             {selected.length > 0 && (
                 <button className="reset-mods-btn" onClick={() => onChange([])}>
-                    Clear Modifiers
+                    {t('Clear Modifiers')}
                 </button>
             )}
         </div>

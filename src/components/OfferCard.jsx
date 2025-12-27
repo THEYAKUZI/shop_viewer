@@ -270,7 +270,7 @@ export default function OfferCard({ offer }) {
                                 borderRadius: '4px',
                                 position: 'relative' // For tooltip if we add one properly
                             }}
-                                title={mod.Description} // Native tooltip
+                                title={t(mod.Description)} // Native tooltip
                             >
                                 {/* Modifier Icon */}
                                 {mod.IconName && (
@@ -288,7 +288,7 @@ export default function OfferCard({ offer }) {
                                         {renderStars(mod.MODIFIER_LEVEL)}
                                     </div>
                                     <div style={{ fontSize: '0.7rem', color: '#ccc' }}>
-                                        {mod.Description}
+                                        {t(mod.Description)}
                                     </div>
                                 </div>
                             </div>

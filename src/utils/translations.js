@@ -18,6 +18,7 @@ export const translations = {
         "Sorted by Most Liked": "Sorted by Most Liked",
         "Loading Armory...": "Loading Armory...",
         "Error": "Error",
+        "Clear Modifiers": "Clear Modifiers",
 
         // Offer Card
         "Level": "Level",
@@ -33,7 +34,7 @@ export const translations = {
         "Resets in": "Resets in",
         "Resetting...": "Resetting...",
 
-        // Modifiers (Fallback names)
+        // Modifiers Names
         "Damage": "Damage",
         "Stun": "Stun",
         "Slow": "Slow",
@@ -57,7 +58,28 @@ export const translations = {
         "Food on Hit": "Food on Hit",
         "Food on Kill": "Food on Kill",
         "Projectile Count": "Projectile Count",
-        "Buff Duration": "Buff Duration"
+        "Buff Duration": "Buff Duration",
+
+        // Common Descriptions
+        "Deals +5 Damage!": "Deals +5 Damage!",
+        "Deals +10 Damage!": "Deals +10 Damage!",
+        "Deals +15 Damage!": "Deals +15 Damage!",
+        "Stun enemies for 1 sec!": "Stun enemies for 1 sec!",
+        "Stun enemies for 2 sec!": "Stun enemies for 2 sec!",
+        "Slow enemies for 2 sec!": "Slow enemies for 2 sec!",
+        "Slow enemies for 3 sec!": "Slow enemies for 3 sec!",
+        "Uses 10% less mana!": "Uses 10% less mana!",
+        "Uses 20% less mana!": "Uses 20% less mana!",
+        "Attacks 10% faster!": "Attacks 10% faster!",
+        "Attacks 20% faster!": "Attacks 20% faster!",
+        "Charge attacks 15% faster!": "Charge attacks 15% faster!",
+        "Critical Hit Chance +5%!": "Critical Hit Chance +5%!",
+        "Critical Hit Chance +10%!": "Critical Hit Chance +10%!",
+        "Critical Hit Damage +50%!": "Critical Hit Damage +50%!",
+        "Attacks have a 25% chance to poison enemies.": "Attacks have a 25% chance to poison enemies.",
+        "Attacks have a 25% chance to burn enemies.": "Attacks have a 25% chance to burn enemies.",
+        "Attacks have a 25% chance to chill enemies.": "Attacks have a 25% chance to chill enemies.",
+        "Attacks have a 25% chance to shock enemies.": "Attacks have a 25% chance to shock enemies.",
     },
     PT: {
         // Headers
@@ -78,6 +100,7 @@ export const translations = {
         "Sorted by Most Liked": "Ordenado por Mais Curtidos",
         "Loading Armory...": "Carregando Armadura...",
         "Error": "Erro",
+        "Clear Modifiers": "Limpar Modificadores",
 
         // Offer Card
         "Level": "Nível",
@@ -117,6 +140,37 @@ export const translations = {
         "Food on Hit": "Comida ao Acertar",
         "Food on Kill": "Comida ao Matar",
         "Projectile Count": "Cont. Projéteis",
-        "Buff Duration": "Duração Buff"
+        "Buff Duration": "Duração Buff",
+
+        // Common Descriptions (Manual Best Effort)
+        "Deals +5 Damage!": "Causa +5 de Dano!",
+        "Deals +10 Damage!": "Causa +10 de Dano!",
+        "Deals +15 Damage!": "Causa +15 de Dano!",
+        "Deals +20 Damage!": "Causa +20 de Dano!",
+        "Stun enemies for 1 sec!": "Atordoa inimigos por 1 s!",
+        "Stun enemies for 2 sec!": "Atordoa inimigos por 2 s!",
+        "Slow enemies for 2 sec!": "Lentidão em inimigos por 2 s!",
+        "Slow enemies for 3 sec!": "Lentidão em inimigos por 3 s!",
+        "Uses 10% less mana!": "Usa 10% menos mana!",
+        "Uses 20% less mana!": "Usa 20% menos mana!",
+        "Uses 30% less mana!": "Usa 30% menos mana!",
+        "Attacks 10% faster!": "Ataca 10% mais rápido!",
+        "Attacks 15% faster!": "Ataca 15% mais rápido!",
+        "Attacks 20% faster!": "Ataca 20% mais rápido!",
+        "Charge attacks 15% faster!": "Carrega ataques 15% mais rápido!",
+        "Critical Hit Chance +5%!": "Chance de Crítico +5%!",
+        "Critical Hit Chance +10%!": "Chance de Crítico +10%!",
+        "Critical Hit Damage +50%!": "Dano Crítico +50%!",
+        "Attacks have a 25% chance to poison enemies.": "Ataques têm 25% de chance de envenenar.",
+        "Attacks have a 25% chance to burn enemies.": "Ataques têm 25% de chance de queimar.",
+        "Attacks have a 25% chance to chill enemies.": "Ataques têm 25% de chance de congelar.",
+        "Attacks have a 25% chance to shock enemies.": "Ataques têm 25% de chance de dar choque.",
+
+        // Legendaries (Partial list based on experience/context)
+        "Midas Touch": "Toque de Midas",
+        "Vampire": "Vampiro",
+        "Golden": "Dourado",
+        "Turn into a Giant, double your size and increase your damage!": "Vire um Gigante, dobre de tamanho e aumente seu dano!",
+        "Summons 4 lightning balls to form a barrier around the Sorcerer, frying all nearby enemies.": "Invoca 4 esferas de raio para formar uma barreira, fritando inimigos próximos."
     }
 };
