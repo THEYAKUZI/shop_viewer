@@ -121,7 +121,7 @@ export default function OfferCard({ offer }) {
     const renderStars = (level) => {
         if (!level || level < 1) return null;
         return (
-            <span style={{ marginLeft: '4px', whiteSpace: 'nowrap' }}>
+            <span style={{ marginLeft: '4px', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center' }}>
                 {[...Array(5)].map((_, i) => (
                     <span
                         key={i}
@@ -133,6 +133,17 @@ export default function OfferCard({ offer }) {
                         ★
                     </span>
                 ))}
+                {level >= 5 && (
+                    <span style={{
+                        fontSize: '0.6rem',
+                        color: '#ffaa00',
+                        marginLeft: '5px',
+                        fontWeight: 'bold',
+                        letterSpacing: '0.5px'
+                    }}>
+                        MAX STARS
+                    </span>
+                )}
             </span>
         );
     };
