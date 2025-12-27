@@ -9,15 +9,13 @@ try:
 
     def scan_modifiers(obj):
         if isinstance(obj, dict):
-            # Check if this object looks like a modifier with a level
-            if 'MODIFIER_LEVEL' in obj and 'Description' in obj:
-                try:
-                    level = int(obj['MODIFIER_LEVEL'])
-                    if level >= 4:
-                        if isinstance(obj['Description'], str) and obj['Description'].strip():
-                            descriptions.add(obj['Description'])
-                except ValueError:
-                    pass
+            # Check for Legendary status
+            is_legendary = obj.get('IsLegendary') or obj.get('isLegendary') or obj.get('Rarity') == 'LEGENDARY'
+            
+            # Also check if it's a modifier with a Name (often legendaries have specific names)
+            if is_legendary and 'Description' in obj:
+                 if isinstance(obj['Description'], str) and obj['Description'].strip():
+                    descriptions.add(obj['Description'])
             
             # Continue scanning children
             for k, v in obj.items():
@@ -28,10 +26,10 @@ try:
 
     scan_modifiers(data)
 
-    print("HIGH_TIER_DESCRIPTIONS_START")
+    print("LEGENDARY_DESCRIPTIONS_START")
     for d in sorted(list(descriptions)):
         print(d)
-    print("HIGH_TIER_DESCRIPTIONS_END")
+    print("LEGENDARY_DESCRIPTIONS_END")
 
 except Exception as e:
     print(f"Error: {e}")
