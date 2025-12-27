@@ -9,6 +9,7 @@ import ModifierFilter from './components/ModifierFilter';
 import { parseGameMaster, parseHeroes } from './utils/parser';
 import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
+import LanguageSelector from './components/LanguageSelector';
 
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
@@ -225,6 +226,7 @@ function App() {
 
   return (
     <div className="main-wrapper">
+      <LanguageSelector />
       <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
         <h1 className="header-title">RAMPAGE ARMORY</h1>
         <VisitorStats />
