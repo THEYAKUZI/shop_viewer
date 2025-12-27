@@ -7,22 +7,31 @@ try:
 
     descriptions = set()
 
-    def scan(obj):
+    def scan_modifiers(obj):
         if isinstance(obj, dict):
-            if 'Description' in obj and isinstance(obj['Description'], str):
-                descriptions.add(obj['Description'])
+            # Check if this object looks like a modifier with a level
+            if 'MODIFIER_LEVEL' in obj and 'Description' in obj:
+                try:
+                    level = int(obj['MODIFIER_LEVEL'])
+                    if level >= 4:
+                        if isinstance(obj['Description'], str) and obj['Description'].strip():
+                            descriptions.add(obj['Description'])
+                except ValueError:
+                    pass
+            
+            # Continue scanning children
             for k, v in obj.items():
-                scan(v)
+                scan_modifiers(v)
         elif isinstance(obj, list):
             for item in obj:
-                scan(item)
+                scan_modifiers(item)
 
-    scan(data)
+    scan_modifiers(data)
 
-    print("FOUND_DESCRIPTIONS_START")
+    print("HIGH_TIER_DESCRIPTIONS_START")
     for d in sorted(list(descriptions)):
         print(d)
-    print("FOUND_DESCRIPTIONS_END")
+    print("HIGH_TIER_DESCRIPTIONS_END")
 
 except Exception as e:
     print(f"Error: {e}")
