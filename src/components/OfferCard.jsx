@@ -19,16 +19,14 @@ export default function OfferCard({ offer }) {
         setIsCopying(true);
 
         try {
-            // html-to-image uses SVG foreignObject which handles CSS/Images much better than html2canvas
             const blob = await toBlob(cardRef.current, {
-                backgroundColor: '#1a1a1a',
-                pixelRatio: 2, // High resolution
-                width: cardRef.current.offsetWidth + 60, // Add generous padding for shadows
-                height: cardRef.current.offsetHeight + 60,
+                // background: transparent (default) to show shadow nicely over discord bg
+                pixelRatio: 2,
+                width: cardRef.current.offsetWidth + 30, // Just enough for the 15px shadow
+                height: cardRef.current.offsetHeight + 30,
                 style: {
-                    transform: 'translate(30px, 30px)', // Move card to center of enlarged canvas
-                    boxShadow: cardRef.current.style.boxShadow, // Ensure shadow is preserved (sometimes lost in clone)
-                    margin: 0, // Reset margin to avoid double-spacing
+                    transform: 'none', // Prevent hover lift
+                    margin: '15px',    // Center in wrapper to capture shadow surrounding it
                 },
                 filter: (node) => {
                     // Exclude the copy button itself from the screenshot
