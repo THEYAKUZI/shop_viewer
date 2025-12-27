@@ -346,6 +346,7 @@ export default function OfferCard({ offer }) {
             </button>
 
             <div className="dates">
+                <span style={{ fontWeight: 'bold', marginRight: '4px' }}>RELEASE DATE:</span>
                 {new Date(offer.startDate).toLocaleDateString()}
             </div>
         </div>
