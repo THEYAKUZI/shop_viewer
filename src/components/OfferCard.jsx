@@ -19,22 +19,35 @@ export default function OfferCard({ offer }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        const legendaryBg = cardRef.current.querySelector('.legendary-bg');
+        // Check if this card has a legendary background
+        const hasLegendaryBg = cardRef.current.querySelector('.legendary-bg');
         let pngUrl = null;
 
         try {
-            // Pre-convert SVG to PNG Data URL
-            if (legendaryBg) {
+            // If legendary, generate a fresh PNG from the source SVG file
+            // We use a fresh Image object to avoid any DOM reuse/tainting/ID collision issues
+            if (hasLegendaryBg) {
                 try {
-                    const canvas = document.createElement('canvas');
-                    // Use natural dimensions or fallback to a reasonable high-res size
-                    canvas.width = legendaryBg.naturalWidth || 1000;
-                    canvas.height = legendaryBg.naturalHeight || 1000;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(legendaryBg, 0, 0, canvas.width, canvas.height);
-                    pngUrl = canvas.toDataURL('image/png');
+                    await new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            // Use fixed high-res dimensions for the texture
+                            canvas.width = 1000;
+                            canvas.height = 1000;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            pngUrl = canvas.toDataURL('image/png');
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            console.warn("Failed to load legendary bg for screenshot");
+                            resolve();
+                        };
+                        img.src = 'icons/legendary_bg.svg';
+                    });
                 } catch (e) {
-                    console.warn("Failed to generate PNG from SVG:", e);
+                    console.warn("Error during SVG conversion:", e);
                 }
             }
 
@@ -49,8 +62,10 @@ export default function OfferCard({ offer }) {
                         const clonedBg = clonedDoc.querySelector('.legendary-bg');
                         if (clonedBg) {
                             clonedBg.src = pngUrl;
-                            // Disable animation in the clone to ensure clean capture
                             clonedBg.style.animation = 'none';
+                            clonedBg.style.transform = 'translate(-50%, -50%)'; // Maintain centering
+                            clonedBg.style.width = '500%'; // Maintain size
+                            clonedBg.style.height = '500%';
                         }
                     }
 
@@ -151,7 +166,6 @@ export default function OfferCard({ offer }) {
                             src="icons/legendary_bg.svg"
                             className="legendary-bg"
                             alt=""
-                            crossOrigin="anonymous"
                         />
                     )}
                     <img
