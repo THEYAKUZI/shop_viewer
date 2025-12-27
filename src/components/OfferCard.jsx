@@ -197,7 +197,7 @@ export default function OfferCard({ offer }) {
             </div>
 
             {/* Like Button */}
-            <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
+            <div style={{ position: 'absolute', top: '40px', right: '10px', zIndex: 10 }}>
                 <LikeButton offerId={offer.Id} />
             </div>
 
