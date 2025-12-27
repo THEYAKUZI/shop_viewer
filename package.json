@@ -12,9 +12,12 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "firebase": "^12.7.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "satori": "^0.18.3",
+    "satori-html": "^0.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
