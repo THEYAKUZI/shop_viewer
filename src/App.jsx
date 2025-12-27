@@ -55,7 +55,7 @@ function App() {
                 value: key,
                 isLegendary: true,
                 iconName: mod.IconName,
-                description: mod.Description // Added description
+                description: mod.Description
               });
             }
           } else if (mod.MODIFIER_TYPE) {
@@ -68,7 +68,7 @@ function App() {
                 value: key,
                 isLegendary: false,
                 iconName: mod.IconName,
-                description: mod.Description // Added description
+                description: mod.Description
               });
             }
           }
