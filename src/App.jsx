@@ -10,10 +10,7 @@ import { parseGameMaster, parseHeroes } from './utils/parser';
 import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
 
-import { translations } from './utils/translations';
-
 function App() {
-  console.log("Rampage Shop Viewer v1.2 Initializing...");
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
@@ -24,9 +21,6 @@ function App() {
   const [rawJson, setRawJson] = useState(null);
   const [allLikes, setAllLikes] = useState({});
   const [sortByPopularity, setSortByPopularity] = useState(false);
-  const [language, setLanguage] = useState('en'); // Default language
-
-  const t = translations[language] || translations.en || {};
 
   const processOffers = (json) => {
     try {
@@ -112,15 +106,12 @@ function App() {
         return res.json();
       })
       .then(json => {
-        console.log("JSON Fetched:", json ? "Success" : "Empty");
         setRawJson(json);
-        console.log("Processing Offers...");
         processOffers(json);
-        console.log("Offers Processed. Setting loading false.");
         setLoading(false);
       })
       .catch(err => {
-        console.error("Fetch Error:", err);
+        console.error(err);
         setError(err.message);
         setLoading(false);
       });
@@ -234,41 +225,12 @@ function App() {
 
   return (
     <div className="main-wrapper">
-      {/* Language Selector */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '10px 0', background: 'rgba(0,0,0,0.3)' }}>
-        {[
-          { code: 'en', label: 'English' },
-          { code: 'pt', label: 'Português' },
-          { code: 'es', label: 'Español' },
-          { code: 'fr', label: 'Français' },
-          { code: 'tr', label: 'Türkçe' }
-        ].map(lang => (
-          <button
-            key={lang.code}
-            onClick={() => setLanguage(lang.code)}
-            style={{
-              background: language === lang.code ? '#ffcc00' : 'rgba(255,255,255,0.1)',
-              color: language === lang.code ? '#000' : '#fff',
-              border: 'none',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.8rem',
-              fontWeight: language === lang.code ? 'bold' : 'normal',
-              transition: 'all 0.2s'
-            }}
-          >
-            {lang.label}
-          </button>
-        ))}
-      </div>
-
       <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
         <h1 className="header-title">RAMPAGE ARMORY</h1>
         <VisitorStats />
         <div style={{ marginTop: '15px', color: '#666', fontSize: '0.75rem', lineHeight: '1.4', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>{t.shopDisclaimerTitle}</p>
-          <p style={{ margin: '4px 0 0 0' }}>{t.shopDisclaimerText}</p>
+          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>SHOP IS SUBJECT TO CHANGE</p>
+          <p style={{ margin: '4px 0 0 0' }}>DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED</p>
         </div>
       </header>
 
@@ -278,7 +240,7 @@ function App() {
           className={`hero-btn ${selectedHero === null ? 'active' : ''}`}
           onClick={() => setSelectedHero(null)}
         >
-          {t.allHeroes}
+          All Heroes
         </button>
         {heroes.map(hero => (
           <button
@@ -315,7 +277,7 @@ function App() {
             borderColor: sortByPopularity ? '#ff4081' : undefined
           }}
         >
-          {sortByPopularity ? '❤️ ' + t.sortByPopularity : t.sortByPopularity}
+          {sortByPopularity ? '❤️ Sorted by Most Liked' : 'Sort by Most Liked'}
         </button>
       </div>
 
@@ -344,7 +306,7 @@ function App() {
                 filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot"></span>
-              {t.liveNow}
+              Live Now
               {nextResetDate && <ShopTimer targetDate={nextResetDate} onExpire={handleShopReset} />}
             </h2>
             <div className="section-line"></div>
@@ -355,7 +317,7 @@ function App() {
           ) : (
             <div className="grid-layout">
               {filteredData.available.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} t={t} />
+                <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
           )}
@@ -384,14 +346,14 @@ function App() {
                   filter: 'drop-shadow(0 0 5px #ffaa00)'
                 }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
-                {t.upcoming}
+                Upcoming
               </h2>
               <div className="section-line"></div>
             </div>
 
             <div className="grid-layout" style={{ opacity: 0.9 }}>
               {filteredData.upcoming.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} t={t} />
+                <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
           </section>
@@ -419,7 +381,7 @@ function App() {
                 filter: 'drop-shadow(0 0 5px #00aaff)'
               }}></div>
               <span className="pulse-dot" style={{ backgroundColor: '#00aaff' }}></span>
-              {t.comingSoon}
+              Coming Soon
             </h2>
             <div className="section-line"></div>
           </div>
@@ -429,7 +391,7 @@ function App() {
           ) : (
             <div className="grid-layout" style={{ opacity: 0.7 }}>
               {filteredData.comingSoon.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} t={t} />
+                <OfferCard key={offer.Id} offer={offer} />
               ))}
             </div>
           )}

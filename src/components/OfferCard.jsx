@@ -11,7 +11,7 @@ import { translations } from '../utils/translations';
 
 // ...
 
-export default function OfferCard({ offer, t = translations.en }) {
+export default function OfferCard({ offer }) {
     // ... (refs, logic)
 
     // ...
@@ -39,7 +39,7 @@ export default function OfferCard({ offer, t = translations.en }) {
                         fontWeight: 'bold',
                         letterSpacing: '0.5px'
                     }}>
-                        {t.maxStars}
+                        MAX STARS
                     </span>
                 )}
             </span>
@@ -59,7 +59,7 @@ export default function OfferCard({ offer, t = translations.en }) {
 
             <div className="card-stats">
                 <div className="stat-row">
-                    <span>{t.level}</span>
+                    <span>Level</span>
                     <span style={{ color: '#fff' }}>{detail.Level || 1}</span>
                 </div>
                 <div className="stat-row">
@@ -69,19 +69,19 @@ export default function OfferCard({ offer, t = translations.en }) {
                             alt=""
                             style={{ width: '16px', height: '16px', verticalAlign: 'middle' }}
                         />
-                        <span>{t.power}</span>
+                        <span>Power</span>
                     </div>
                     <span style={{ color: '#fff' }}>{detail.WeaponPower || weapon.Power}</span>
                 </div>
                 <div className="stat-row">
-                    <span>{t.speed}</span>
+                    <span>Speed</span>
                     <span style={{ color: '#fff' }}>{weapon.Speed}</span>
                 </div>
 
                 {/* Modifiers Section */}
                 {modifiers.length > 0 && (
                     <div style={{ marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #333' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '5px', textTransform: 'uppercase' }}>{t.modifiers}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '5px', textTransform: 'uppercase' }}>Modifiers</div>
                         {modifiers.map((mod, idx) => (
                             <div key={idx} style={{
                                 display: 'flex',
@@ -142,7 +142,7 @@ export default function OfferCard({ offer, t = translations.en }) {
                     CSS content can't take dynamic props unless via var().
                     Wait, "RECOMMEND" is in a div in LikeButton.jsx.
                 */}
-                <LikeButton offerId={offer.Id} label={t.recommend} />
+                <LikeButton offerId={offer.Id} />
             </div>
 
             {/* Copy Button */}
@@ -150,7 +150,7 @@ export default function OfferCard({ offer, t = translations.en }) {
                 className="copy-btn"
                 onClick={handleCopy}
                 disabled={isCopying}
-                title={t.copyTooltip}
+                title="Copy card image to clipboard"
                 style={{
                     position: 'absolute',
                     top: '10px',
@@ -177,11 +177,11 @@ export default function OfferCard({ offer, t = translations.en }) {
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 )}
-                <div className="hover-label-copy">{t.copy}</div>
+                <div className="hover-label-copy">COPY</div>
             </button>
 
             <div className="dates">
-                <span style={{ fontWeight: 'bold', marginRight: '4px' }}>{t.releaseDate}</span>
+                <span style={{ fontWeight: 'bold', marginRight: '4px' }}>RELEASE DATE:</span>
                 {new Date(offer.startDate).toLocaleDateString()}
             </div>
         </div>

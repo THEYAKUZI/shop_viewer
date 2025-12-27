@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { subscribeToLikes, toggleLike } from '../utils/likeService';
 import './LikeButton.css';
 
-export default function LikeButton({ offerId, label = "RECOMMEND" }) {
+export default function LikeButton({ offerId }) {
     const [data, setData] = useState({ count: 0, isLiked: false });
     const [animating, setAnimating] = useState(false);
 
@@ -37,7 +37,7 @@ export default function LikeButton({ offerId, label = "RECOMMEND" }) {
                 </svg>
             </div>
             <span className="like-count">{data.count}</span>
-            <div className="hover-label">{label}</div>
+            <div className="hover-label">RECOMMEND</div>
         </button>
     );
 }
