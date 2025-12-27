@@ -5,12 +5,10 @@ import html2canvas from 'html2canvas';
 // Cache to store Data URLs for images to speed up repeated copies
 const imgCache = new Map();
 
-export default function OfferCard({ offer, isMostRecommended }) {
+export default function OfferCard({ offer }) {
     const cardRef = useRef(null);
     const [isCopying, setIsCopying] = useState(false);
-    const item = offer.items && offer.items[0]; // Primary item
-    if (!item) return null;
-
+    const item = offer.items[0]; // Primary item
     const { weapon, aesthetic, modifiers, detail } = item;
 
     if (!weapon || !aesthetic) return null;
@@ -18,10 +16,7 @@ export default function OfferCard({ offer, isMostRecommended }) {
     const iconUrl = `icons/${aesthetic.IconName}.png`;
 
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
-    const borderColor = isLegendary ? (isMostRecommended ? '#ffcc00' : 'var(--color-rarity-legendary)') : '#333';
-
-    // Golden filter for recommended items
-    const goldenFilter = 'sepia(1) saturate(3) hue-rotate(0deg) brightness(1.2)';
+    const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
 
     const cardId = `offer-card-${offer.Id}`;
 
@@ -29,10 +24,9 @@ export default function OfferCard({ offer, isMostRecommended }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        // Helper to convert image source to Data URL with caching and optional filter
-        const toDataURL = async (src, filter = null) => {
-            const cacheKey = src + (filter || '');
-            if (imgCache.has(cacheKey)) return imgCache.get(cacheKey);
+        // Helper to convert image source to Data URL with caching
+        const toDataURL = async (src) => {
+            if (imgCache.has(src)) return imgCache.get(src);
 
             return new Promise((resolve) => {
                 const img = new Image();
@@ -42,14 +36,9 @@ export default function OfferCard({ offer, isMostRecommended }) {
                     canvas.width = img.naturalWidth || 500;
                     canvas.height = img.naturalHeight || 500;
                     const ctx = canvas.getContext('2d');
-
-                    if (filter) {
-                        ctx.filter = filter;
-                    }
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
                     const dataUrl = canvas.toDataURL('image/png');
-                    imgCache.set(cacheKey, dataUrl);
+                    imgCache.set(src, dataUrl);
                     resolve(dataUrl);
                 };
                 img.onerror = () => {
@@ -63,12 +52,9 @@ export default function OfferCard({ offer, isMostRecommended }) {
         const weaponImg = cardRef.current.querySelector('.weapon-img');
 
         try {
-            // Apply golden filter to the legendary BG capture if recommended
-            const bgFilter = isMostRecommended ? goldenFilter : null;
-
             // Pre-load images concurrently
             const [base64Leg, base64Wep] = await Promise.all([
-                legendaryImg ? toDataURL(legendaryImg.src || 'icons/legendary_bg.svg', bgFilter) : Promise.resolve(null),
+                legendaryImg ? toDataURL(legendaryImg.src || 'icons/legendary_bg.svg') : Promise.resolve(null),
                 weaponImg ? toDataURL(weaponImg.src) : Promise.resolve(null)
             ]);
 
@@ -91,8 +77,6 @@ export default function OfferCard({ offer, isMostRecommended }) {
                             bgEl.style.transform = 'translate(-50%, -50%)';
                             bgEl.style.width = '500%';
                             bgEl.style.height = '500%';
-                            // The filter is baked into the image, so we remove CSS filter from clone if any
-                            bgEl.style.filter = 'none';
                         }
                     }
 
@@ -188,26 +172,20 @@ export default function OfferCard({ offer, isMostRecommended }) {
         return mod.Name || mod.Constant;
     };
 
-    const shouldShowSubtitle = !isMostRecommended && offer.name !== aesthetic.Name;
-
     return (
         <div
             id={cardId}
             ref={cardRef}
             className="offer-card"
-            style={{
-                borderColor,
-                boxShadow: isLegendary ? (isMostRecommended ? '0 0 15px rgba(255, 204, 0, 0.5)' : '0 0 15px rgba(191, 0, 255, 0.5)') : 'none'
-            }}
+            style={{ borderColor, boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none' }}
         >
             <div className="card-icon">
-                <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`} style={isMostRecommended ? { borderColor: '#ffcc00', boxShadow: '0 0 15px rgba(255, 204, 0, 0.4), inset 0 0 10px rgba(0,0,0,0.5)' } : {}}>
+                <div className={`icon-frame ${isLegendary ? 'legendary' : ''}`}>
                     {isLegendary && (
                         <img
                             src="icons/legendary_bg.svg"
                             className="legendary-bg"
                             alt=""
-                            style={isMostRecommended ? { filter: goldenFilter } : {}}
                         />
                     )}
                     <img
@@ -219,22 +197,17 @@ export default function OfferCard({ offer, isMostRecommended }) {
                     />
                 </div>
             </div>
-            {isLegendary && <div className="legendary-badge" style={isMostRecommended ? { background: 'linear-gradient(45deg, #ffcc00, #ffaa00)', color: 'black' } : {}}>LEGENDARY</div>}
+            {isLegendary && <div className="legendary-badge">LEGENDARY</div>}
 
             <div className="card-title" style={{
-                color: isLegendary ? (isMostRecommended ? '#ffcc00' : 'var(--color-rarity-legendary)') : 'white',
+                color: isLegendary ? 'var(--color-rarity-legendary)' : 'white',
                 textShadow: isLegendary ? '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none',
                 letterSpacing: '1px'
             }}>
                 {offer.name}
             </div>
-
-            <div className="card-subtitle" style={{ minHeight: '1.2rem' }}>
-                {isMostRecommended ? (
-                    <span style={{ color: '#ffcc00', fontWeight: 'bold', letterSpacing: '1px' }}>MOST RECOMMENDED</span>
-                ) : (
-                    shouldShowSubtitle ? aesthetic.Name : null
-                )}
+            <div className="card-subtitle">
+                {aesthetic.Name}
             </div>
 
             <div className="card-stats">
