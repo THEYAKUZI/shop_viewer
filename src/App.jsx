@@ -10,6 +10,8 @@ import { parseGameMaster, parseHeroes } from './utils/parser';
 import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
 
+import { translations } from './utils/translations';
+
 function App() {
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
@@ -21,6 +23,9 @@ function App() {
   const [rawJson, setRawJson] = useState(null);
   const [allLikes, setAllLikes] = useState({});
   const [sortByPopularity, setSortByPopularity] = useState(false);
+  const [language, setLanguage] = useState('en'); // Default language
+
+  const t = translations[language];
 
   const processOffers = (json) => {
     try {
@@ -225,12 +230,41 @@ function App() {
 
   return (
     <div className="main-wrapper">
+      {/* Language Selector */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '10px 0', background: 'rgba(0,0,0,0.3)' }}>
+        {[
+          { code: 'en', label: 'English' },
+          { code: 'pt', label: 'Português' },
+          { code: 'es', label: 'Español' },
+          { code: 'fr', label: 'Français' },
+          { code: 'tr', label: 'Türkçe' }
+        ].map(lang => (
+          <button
+            key={lang.code}
+            onClick={() => setLanguage(lang.code)}
+            style={{
+              background: language === lang.code ? '#ffcc00' : 'rgba(255,255,255,0.1)',
+              color: language === lang.code ? '#000' : '#fff',
+              border: 'none',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              fontWeight: language === lang.code ? 'bold' : 'normal',
+              transition: 'all 0.2s'
+            }}
+          >
+            {lang.label}
+          </button>
+        ))}
+      </div>
+
       <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
         <h1 className="header-title">RAMPAGE ARMORY</h1>
         <VisitorStats />
         <div style={{ marginTop: '15px', color: '#666', fontSize: '0.75rem', lineHeight: '1.4', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>SHOP IS SUBJECT TO CHANGE</p>
-          <p style={{ margin: '4px 0 0 0' }}>DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED</p>
+          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>{t.shopDisclaimerTitle}</p>
+          <p style={{ margin: '4px 0 0 0' }}>{t.shopDisclaimerText}</p>
         </div>
       </header>
 
@@ -240,7 +274,7 @@ function App() {
           className={`hero-btn ${selectedHero === null ? 'active' : ''}`}
           onClick={() => setSelectedHero(null)}
         >
-          All Heroes
+          {t.allHeroes}
         </button>
         {heroes.map(hero => (
           <button
@@ -277,7 +311,7 @@ function App() {
             borderColor: sortByPopularity ? '#ff4081' : undefined
           }}
         >
-          {sortByPopularity ? '❤️ Sorted by Most Liked' : 'Sort by Most Liked'}
+          {sortByPopularity ? '❤️ ' + t.sortByPopularity : t.sortByPopularity}
         </button>
       </div>
 
@@ -306,7 +340,7 @@ function App() {
                 filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot"></span>
-              Live Now
+              {t.liveNow}
               {nextResetDate && <ShopTimer targetDate={nextResetDate} onExpire={handleShopReset} />}
             </h2>
             <div className="section-line"></div>
@@ -317,7 +351,7 @@ function App() {
           ) : (
             <div className="grid-layout">
               {filteredData.available.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} t={t} />
               ))}
             </div>
           )}
@@ -346,14 +380,14 @@ function App() {
                   filter: 'drop-shadow(0 0 5px #ffaa00)'
                 }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
-                Upcoming
+                {t.upcoming}
               </h2>
               <div className="section-line"></div>
             </div>
 
             <div className="grid-layout" style={{ opacity: 0.9 }}>
               {filteredData.upcoming.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} t={t} />
               ))}
             </div>
           </section>
@@ -378,10 +412,10 @@ function App() {
                 zIndex: -1,
                 opacity: 0.8,
                 pointerEvents: 'none',
-                filter: 'drop-shadow(0 0 5px #ffaa00)'
+                filter: 'drop-shadow(0 0 5px #00aaff)'
               }}></div>
-              <span className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-blue)' }}></span>
-              Coming Soon
+              <span className="pulse-dot" style={{ backgroundColor: '#00aaff' }}></span>
+              {t.comingSoon}
             </h2>
             <div className="section-line"></div>
           </div>
@@ -389,9 +423,9 @@ function App() {
           {filteredData.comingSoon.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
           ) : (
-            <div className="grid-layout" style={{ opacity: 0.85 }}>
+            <div className="grid-layout" style={{ opacity: 0.7 }}>
               {filteredData.comingSoon.map(offer => (
-                <OfferCard key={offer.Id} offer={offer} />
+                <OfferCard key={offer.Id} offer={offer} t={t} />
               ))}
             </div>
           )}
