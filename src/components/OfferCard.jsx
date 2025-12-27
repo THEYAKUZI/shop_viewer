@@ -22,11 +22,15 @@ export default function OfferCard({ offer }) {
             const blob = await toBlob(cardRef.current, {
                 // background: transparent (default) to show shadow nicely over discord bg
                 pixelRatio: 2,
-                width: cardRef.current.offsetWidth + 30, // Just enough for the 15px shadow
-                height: cardRef.current.offsetHeight + 30,
+                width: cardRef.current.offsetWidth + 60, // Ample padding (30px/side)
+                height: cardRef.current.offsetHeight + 60,
                 style: {
-                    transform: 'none', // Prevent hover lift
-                    margin: '15px',    // Center in wrapper to capture shadow surrounding it
+                    transform: 'none', // Kill hover lift
+                    transition: 'none', // Kill transition
+                    margin: '30px',    // Center in canvas
+                    // Force the resting 'glow' or 'none', incorrectly capturing the 'hover' shadow was the issue
+                    boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none',
+                    borderColor: borderColor // Ensure border color is preserved
                 },
                 filter: (node) => {
                     // Exclude the copy button itself from the screenshot
