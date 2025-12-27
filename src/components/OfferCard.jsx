@@ -24,6 +24,12 @@ export default function OfferCard({ offer }) {
             const blob = await toBlob(cardRef.current, {
                 backgroundColor: '#1a1a1a',
                 pixelRatio: 2, // High resolution
+                width: cardRef.current.offsetWidth + 40, // Add padding for shadows
+                height: cardRef.current.offsetHeight + 40,
+                style: {
+                    transform: 'none', // Prevent hover lift from clipping top
+                    margin: '20px',    // Push card in to reveal shadow
+                },
                 filter: (node) => {
                     // Exclude the copy button itself from the screenshot
                     return node.tagName !== 'BUTTON';
