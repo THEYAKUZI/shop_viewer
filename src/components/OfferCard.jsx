@@ -20,18 +20,17 @@ export default function OfferCard({ offer }) {
 
         try {
             const blob = await toBlob(cardRef.current, {
-                // background: transparent
                 pixelRatio: 2,
-                // Buffer for shadow (20px each side is enough for resting state)
-                width: cardRef.current.offsetWidth + 40,
-                height: cardRef.current.offsetHeight + 40,
+                // Remove all manual sizing/margins hack
+                // We will use a solid border instead of a glow shadow for the capture to guarantee a perfect frame
                 style: {
-                    transform: 'none', // Kill hover lift
-                    transition: 'none', // Kill transition
-                    margin: '20px',    // Centered
-                    // Use the exact CSS-defined shadow for resting state (no hover bloom)
-                    boxShadow: isLegendary ? '0 0 15px rgba(170, 0, 255, 0.5)' : 'none',
-                    borderColor: borderColor
+                    transform: 'none',
+                    transition: 'none',
+                    margin: '0',
+                    boxShadow: 'none', // Remove shadow to prevent clipping/transparency
+                    border: `6px solid ${borderColor}`, // Thick solid border guarantees visibility
+                    borderRadius: '12px', // Ensure radius matches
+                    boxSizing: 'border-box' // Ensure border is included in dimensions
                 },
                 filter: (node) => {
                     return node.tagName !== 'BUTTON';
