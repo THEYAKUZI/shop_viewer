@@ -11,6 +11,7 @@ import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
 
 function App() {
+  console.log("Revert Finalized - v1.3");
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
