@@ -118,7 +118,7 @@ function App() {
 
     // Subscribe to likes
     const unsubscribe = subscribeToAllLikes((likes) => {
-      setAllLikes(likes);
+      setAllLikes(likes || {});
     });
     return () => unsubscribe();
   }, []);
