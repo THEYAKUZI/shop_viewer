@@ -22,38 +22,32 @@ export default function OfferCard({ offer }) {
         try {
             const canvas = await html2canvas(cardRef.current, {
                 useCORS: true,
-                allowTaint: true, // Try allowing taint
+                allowTaint: true,
                 backgroundColor: '#1a1a1a',
                 scale: 2,
                 logging: false,
                 onclone: (clonedDoc) => {
-                    // Fix: html2canvas struggles with max-width/height in flex containers
-                    // We force the image to a fixed size in the clone to ensure it renders
-                    const frame = clonedDoc.querySelector('.icon-frame');
-                    if (frame) {
-                        frame.style.overflow = 'visible'; // valid
-                        frame.style.display = 'block'; // simplify layout
-                        frame.style.position = 'relative';
-                    }
+                    // Fix: Target ALL elements in the clone to ensure we hit the right one
+                    // Use less destructive styling changes to preserve layout
+                    const frames = clonedDoc.querySelectorAll('.icon-frame');
+                    frames.forEach(frame => {
+                        // Don't change display (breaks flex), just allow overflow
+                        frame.style.overflow = 'visible';
+                    });
 
-                    const img = clonedDoc.querySelector('.weapon-img');
-                    if (img) {
-                        // Reset all complex styles that might confuse the renderer
+                    const imgs = clonedDoc.querySelectorAll('.weapon-img');
+                    imgs.forEach(img => {
                         img.style.maxWidth = 'none';
                         img.style.maxHeight = 'none';
-                        img.style.filter = 'none';
+                        img.style.filter = 'none'; // CRITICAL: Filters often break html2canvas
                         img.style.transform = 'none';
 
-                        // Force explicit dimensions roughly matching visual appearance
-                        // The frame is 100x100, so 90px is appropriate
+                        // Explicit pixel size for html2canvas
                         img.style.width = '90px';
                         img.style.height = '90px';
                         img.style.objectFit = 'contain';
-
-                        // Center it manually in the simplified block frame
-                        img.style.margin = '5px auto';
-                        img.style.display = 'block';
-                    }
+                        img.style.zIndex = '100'; // Ensure on top of bg, though stacking context matters most
+                    });
                 }
             });
 
