@@ -151,7 +151,6 @@ export default function OfferCard({ offer, t = translations.en }) {
                 onClick={handleCopy}
                 disabled={isCopying}
                 title={t.copyTooltip}
-                {/* ... */}
                 style={{
                     position: 'absolute',
                     top: '10px',
@@ -168,7 +167,6 @@ export default function OfferCard({ offer, t = translations.en }) {
                 onMouseOver={(e) => e.currentTarget.style.opacity = 1}
                 onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
             >
-                {/* ... icons ... */}
                 {isCopying ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"></polyline>
