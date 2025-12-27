@@ -13,7 +13,7 @@ import VisitorStats from './components/VisitorStats';
 import { translations } from './utils/translations';
 
 function App() {
-  console.log("Rampage Shop Viewer v1.1 Loaded - Debug check");
+  console.log("Rampage Shop Viewer v1.2 Initializing...");
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
@@ -26,7 +26,7 @@ function App() {
   const [sortByPopularity, setSortByPopularity] = useState(false);
   const [language, setLanguage] = useState('en'); // Default language
 
-  const t = translations[language];
+  const t = translations[language] || translations.en || {};
 
   const processOffers = (json) => {
     try {
@@ -112,12 +112,15 @@ function App() {
         return res.json();
       })
       .then(json => {
+        console.log("JSON Fetched:", json ? "Success" : "Empty");
         setRawJson(json);
+        console.log("Processing Offers...");
         processOffers(json);
+        console.log("Offers Processed. Setting loading false.");
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
+        console.error("Fetch Error:", err);
         setError(err.message);
         setLoading(false);
       });
