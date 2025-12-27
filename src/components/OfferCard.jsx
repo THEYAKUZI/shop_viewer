@@ -121,8 +121,18 @@ export default function OfferCard({ offer }) {
     const renderStars = (level) => {
         if (!level || level < 1) return null;
         return (
-            <span style={{ color: '#ffcc00', marginLeft: '4px' }}>
-                {'★'.repeat(level)}
+            <span style={{ marginLeft: '4px', whiteSpace: 'nowrap' }}>
+                {[...Array(5)].map((_, i) => (
+                    <span
+                        key={i}
+                        style={{
+                            color: '#ffcc00',
+                            opacity: i < level ? 1 : 0.2
+                        }}
+                    >
+                        ★
+                    </span>
+                ))}
             </span>
         );
     };
