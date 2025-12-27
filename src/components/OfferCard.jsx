@@ -11,7 +11,6 @@ export default function OfferCard({ offer }) {
     if (!weapon || !aesthetic) return null;
 
     const iconUrl = `icons/${aesthetic.IconName}.png`;
-
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
 
@@ -24,11 +23,12 @@ export default function OfferCard({ offer }) {
             const blob = await toBlob(cardRef.current, {
                 backgroundColor: '#1a1a1a',
                 pixelRatio: 2, // High resolution
-                width: cardRef.current.offsetWidth + 40, // Add padding for shadows
-                height: cardRef.current.offsetHeight + 40,
+                width: cardRef.current.offsetWidth + 60, // Add generous padding for shadows
+                height: cardRef.current.offsetHeight + 60,
                 style: {
-                    transform: 'none', // Prevent hover lift from clipping top
-                    margin: '20px',    // Push card in to reveal shadow
+                    transform: 'translate(30px, 30px)', // Move card to center of enlarged canvas
+                    boxShadow: cardRef.current.style.boxShadow, // Ensure shadow is preserved (sometimes lost in clone)
+                    margin: 0, // Reset margin to avoid double-spacing
                 },
                 filter: (node) => {
                     // Exclude the copy button itself from the screenshot
