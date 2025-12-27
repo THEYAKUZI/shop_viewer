@@ -1,8 +1,10 @@
-
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
+import html2canvas from 'html2canvas';
 
 export default function OfferCard({ offer }) {
+    const cardRef = useRef(null);
+    const [isCopying, setIsCopying] = useState(false);
     const item = offer.items[0]; // Primary item
     const { weapon, aesthetic, modifiers, detail } = item;
 
@@ -12,6 +14,39 @@ export default function OfferCard({ offer }) {
 
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
+
+    const handleCopy = async () => {
+        if (!cardRef.current || isCopying) return;
+        setIsCopying(true);
+
+        try {
+            const canvas = await html2canvas(cardRef.current, {
+                useCORS: true,
+                backgroundColor: '#1a1a1a', // Ensure dark background is captured if transparent
+                scale: 2 // Higher resolution
+            });
+
+            canvas.toBlob(async (blob) => {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        await navigator.clipboard.write([item]);
+                        // Feedback
+                        setTimeout(() => setIsCopying(false), 2000); // Reset after 2s
+                    } else {
+                        throw new Error('Clipboard API not available');
+                    }
+                } catch (err) {
+                    console.error('Failed to copy to clipboard:', err);
+                    alert('Failed to copy image to clipboard. Please try again.');
+                    setIsCopying(false);
+                }
+            });
+        } catch (err) {
+            console.error('Screenshot failed:', err);
+            setIsCopying(false);
+        }
+    };
 
     const renderStars = (level) => {
         if (!level || level < 1) return null;
@@ -69,6 +104,7 @@ export default function OfferCard({ offer }) {
 
     return (
         <div
+            ref={cardRef}
             className="offer-card"
             style={{ borderColor, boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none' }}
         >
@@ -172,9 +208,43 @@ export default function OfferCard({ offer }) {
                 </div>
             </div>
 
+            {/* Like Button */}
             <div style={{ position: 'absolute', top: '40px', right: '10px', zIndex: 10 }}>
                 <LikeButton offerId={offer.Id} />
             </div>
+
+            {/* Copy Button */}
+            <button
+                onClick={handleCopy}
+                disabled={isCopying}
+                title="Copy card image to clipboard"
+                style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 10,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isCopying ? '#4caf50' : '#888',
+                    padding: '4px',
+                    transition: 'color 0.2s',
+                    opacity: 0.7
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
+            >
+                {isCopying ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                )}
+            </button>
 
             <div className="dates">
                 {new Date(offer.startDate).toLocaleDateString()}
