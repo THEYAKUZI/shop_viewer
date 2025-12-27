@@ -2,6 +2,9 @@ import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
 import html2canvas from 'html2canvas';
 
+// Cache to store Data URLs for images to speed up repeated copies
+const imgCache = new Map();
+
 export default function OfferCard({ offer }) {
     const cardRef = useRef(null);
     const [isCopying, setIsCopying] = useState(false);
@@ -21,20 +24,26 @@ export default function OfferCard({ offer }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        // Helper to convert image source to Data URL
+        // Helper to convert image source to Data URL with caching
         const toDataURL = async (src) => {
+            if (imgCache.has(src)) return imgCache.get(src);
+
             return new Promise((resolve) => {
                 const img = new Image();
-                img.crossOrigin = 'anonymous'; // Try anonymous for external calls
+                img.crossOrigin = 'anonymous';
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     canvas.width = img.naturalWidth || 500;
                     canvas.height = img.naturalHeight || 500;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/png'));
+                    ctx.drawImage(img, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    imgCache.set(src, dataUrl);
+                    resolve(dataUrl);
                 };
-                img.onerror = () => resolve(null);
+                img.onerror = () => {
+                    resolve(null);
+                };
                 img.src = src;
             });
         };
