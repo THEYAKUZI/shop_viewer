@@ -121,7 +121,7 @@ export default function OfferCard({ offer }) {
     const renderStars = (level) => {
         if (!level || level < 1) return null;
         return (
-            <span style={{ marginLeft: '4px', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center' }}>
+            <span style={{ marginLeft: '4px', display: 'flex', alignItems: 'center', flex: 1 }}>
                 {[...Array(5)].map((_, i) => (
                     <span
                         key={i}
@@ -137,7 +137,7 @@ export default function OfferCard({ offer }) {
                     <span style={{
                         fontSize: '0.6rem',
                         color: '#ffaa00',
-                        marginLeft: '8px',
+                        marginLeft: 'auto',
                         fontWeight: 'bold',
                         letterSpacing: '0.5px'
                     }}>
@@ -280,7 +280,7 @@ export default function OfferCard({ offer }) {
                                 )}
 
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '0.9rem', color: '#aaf', fontWeight: 'bold' }}>
+                                    <div style={{ fontSize: '0.9rem', color: '#aaf', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
                                         {getModifierName(mod)}
                                         {renderStars(mod.MODIFIER_LEVEL)}
                                     </div>
