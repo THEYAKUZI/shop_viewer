@@ -20,20 +20,20 @@ export default function OfferCard({ offer }) {
 
         try {
             const blob = await toBlob(cardRef.current, {
-                // background: transparent (default) to show shadow nicely over discord bg
+                // background: transparent
                 pixelRatio: 2,
-                width: cardRef.current.offsetWidth + 60, // Ample padding (30px/side)
-                height: cardRef.current.offsetHeight + 60,
+                // Add a large buffer to ensure no part of the glow is cut off
+                width: cardRef.current.offsetWidth + 100,
+                height: cardRef.current.offsetHeight + 100,
                 style: {
                     transform: 'none', // Kill hover lift
                     transition: 'none', // Kill transition
-                    margin: '30px',    // Center in canvas
-                    // Force the resting 'glow' or 'none', incorrectly capturing the 'hover' shadow was the issue
-                    boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none',
-                    borderColor: borderColor // Ensure border color is preserved
+                    margin: '50px',    // Big margin to center in big canvas
+                    // Force the resting 'glow' explicitly
+                    boxShadow: isLegendary ? '0 0 20px 5px rgba(191, 0, 255, 0.6)' : 'none',
+                    borderColor: borderColor
                 },
                 filter: (node) => {
-                    // Exclude the copy button itself from the screenshot
                     return node.tagName !== 'BUTTON';
                 }
             });
