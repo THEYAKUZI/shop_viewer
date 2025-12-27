@@ -1,10 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import LikeButton from './LikeButton';
-import { toBlob } from 'html-to-image';
 
 export default function OfferCard({ offer }) {
-    const cardRef = useRef(null);
-    const [isCopying, setIsCopying] = useState(false);
     const item = offer.items[0]; // Primary item
     const { weapon, aesthetic, modifiers, detail } = item;
 
@@ -14,52 +11,7 @@ export default function OfferCard({ offer }) {
     const isLegendary = aesthetic.IsLegendary || detail.Rarity === 'LEGENDARY';
     const borderColor = isLegendary ? 'var(--color-rarity-legendary)' : '#333';
 
-    const handleCopy = async () => {
-        if (!cardRef.current || isCopying) return;
-        setIsCopying(true);
-
-        try {
-            const blob = await toBlob(cardRef.current, {
-                pixelRatio: 2,
-                // Remove all manual sizing/margins hack
-                // We will use a solid border instead of a glow shadow for the capture to guarantee a perfect frame
-                style: {
-                    transform: 'none',
-                    transition: 'none',
-                    margin: '0',
-                    boxShadow: 'none', // Remove shadow to prevent clipping/transparency
-                    border: `6px solid ${borderColor}`, // Thick solid border guarantees visibility
-                    borderRadius: '12px', // Ensure radius matches
-                    boxSizing: 'border-box' // Ensure border is included in dimensions
-                },
-                filter: (node) => {
-                    return node.tagName !== 'BUTTON';
-                }
-            });
-
-            if (!blob) throw new Error('Failed to generate image blob');
-
-            try {
-                if (navigator.clipboard && navigator.clipboard.write) {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    setTimeout(() => setIsCopying(false), 2000);
-                } else {
-                    throw new Error('Clipboard API not available');
-                }
-            } catch (err) {
-                console.error('Clipboard write failed:', err);
-                alert('Failed to copy. ' + err.message);
-                setIsCopying(false);
-            }
-        } catch (err) {
-            console.error('Screenshot failed:', err);
-            // Fallback: If image fails to load (CORS), try forcing a re-render or alerting
-            alert('Screenshot failed. Check console for details.');
-            setIsCopying(false);
-        }
-    };
-
+    // Helper functions for rendering
     const renderStars = (level) => {
         if (!level || level < 1) return null;
         return (
@@ -90,7 +42,7 @@ export default function OfferCard({ offer }) {
             'CHAIN': 'Chain',
             'PIERCE': 'Pierce',
             'ATKSPD': 'Attack Speed',
-            'INCREASE_COLLISION': 'Attack Size', // Fix for "Troll's"
+            'INCREASE_COLLISION': 'Attack Size',
             'COOLDOWN_REDUC': 'Cooldown',
             'CHARGE_REDUC': 'Charge Time',
             'MANA_COST': 'Mana Cost',
@@ -116,7 +68,6 @@ export default function OfferCard({ offer }) {
 
     return (
         <div
-            ref={cardRef}
             className="offer-card"
             style={{ borderColor, boxShadow: isLegendary ? '0 0 15px rgba(191, 0, 255, 0.5)' : 'none' }}
         >
@@ -180,16 +131,16 @@ export default function OfferCard({ offer }) {
                                 background: 'rgba(255,255,255,0.05)',
                                 padding: '6px',
                                 borderRadius: '4px',
-                                position: 'relative' // For tooltip if we add one properly
+                                position: 'relative'
                             }}
-                                title={mod.Description} // Native tooltip
+                                title={mod.Description}
                             >
                                 {/* Modifier Icon */}
                                 {mod.IconName && (
                                     <img
                                         src={`icons/${mod.IconName}.png`}
                                         style={{ width: '24px', height: '24px' }}
-                                        onError={(e) => { e.target.style.display = 'none'; }} // Hide if missing
+                                        onError={(e) => { e.target.style.display = 'none'; }}
                                         alt=""
                                     />
                                 )}
@@ -221,49 +172,9 @@ export default function OfferCard({ offer }) {
             </div>
 
             {/* Like Button */}
-            <div style={{ position: 'absolute', top: '40px', right: '10px', zIndex: 10 }}>
+            <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
                 <LikeButton offerId={offer.Id} />
             </div>
-
-            {/* Copy Button */}
-            <button
-                onClick={handleCopy}
-                disabled={isCopying}
-                title="Copy card image to clipboard"
-                style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '10px',
-                    zIndex: 10,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: isCopying ? '#4caf50' : '#888',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '2px',
-                    padding: '4px',
-                    transition: 'color 0.2s',
-                    opacity: 0.7
-                }}
-                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
-                onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
-            >
-                {isCopying ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                )}
-                <span style={{ fontSize: '0.6rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                    {isCopying ? 'Done' : 'Copy'}
-                </span>
-            </button>
 
             <div className="dates">
                 {new Date(offer.startDate).toLocaleDateString()}
