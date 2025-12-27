@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ShopTimer = ({ targetDate, onExpire }) => {
     const [timeLeft, setTimeLeft] = useState('');
+    const { t } = useLanguage();
 
     useEffect(() => {
         const calculateTimeLeft = () => {
@@ -12,7 +14,7 @@ const ShopTimer = ({ targetDate, onExpire }) => {
 
             if (difference <= 0) {
                 if (onExpire) onExpire();
-                return 'Resetting...';
+                return t('Resetting...');
             }
 
             const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -33,19 +35,19 @@ const ShopTimer = ({ targetDate, onExpire }) => {
         setTimeLeft(initial);
 
         // If already expired, don't start interval
-        if (initial === 'Resetting...') return;
+        if (initial === t('Resetting...')) return;
 
         // Update every second
         const timer = setInterval(() => {
             const val = calculateTimeLeft();
             setTimeLeft(val);
-            if (val === 'Resetting...') {
+            if (val === t('Resetting...')) {
                 clearInterval(timer);
             }
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [targetDate, onExpire]);
+    }, [targetDate, onExpire, t]);
 
     return (
         <span style={{
@@ -56,7 +58,7 @@ const ShopTimer = ({ targetDate, onExpire }) => {
             textTransform: 'none',
             fontFamily: 'var(--font-main)'
         }}>
-            (Resets in: <span style={{ color: '#ffcc00', fontWeight: 'bold' }}>{timeLeft}</span>)
+            ({t('Resets in')}: <span style={{ color: '#ffcc00', fontWeight: 'bold' }}>{timeLeft}</span>)
         </span>
     );
 };

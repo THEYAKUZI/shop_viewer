@@ -10,8 +10,10 @@ import { parseGameMaster, parseHeroes } from './utils/parser';
 import { subscribeToAllLikes } from './utils/likeService';
 import VisitorStats from './components/VisitorStats';
 import LanguageSelector from './components/LanguageSelector';
+import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
+  const { t } = useLanguage();
   const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState(null);
@@ -136,7 +138,7 @@ function App() {
   if (loading) {
     return (
       <div className="loading">
-        <div className="section-title">Loading Armory...</div>
+        <div className="section-title">{t('Loading Armory...')}</div>
       </div>
     );
   }
@@ -144,7 +146,7 @@ function App() {
   if (error) {
     return (
       <div className="error">
-        <h1 className="header-title" style={{ fontSize: '2rem' }}>Error</h1>
+        <h1 className="header-title" style={{ fontSize: '2rem' }}>{t('Error')}</h1>
         <p className="subtitle" style={{ color: 'red' }}>{error}</p>
         <p style={{ color: '#666', marginTop: '20px' }}>Please place DB_GameMaster.json in the 'shop_viewer/public' folder and restart.</p>
       </div>
@@ -228,11 +230,11 @@ function App() {
     <div className="main-wrapper">
       <LanguageSelector />
       <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
-        <h1 className="header-title">RAMPAGE ARMORY</h1>
+        <h1 className="header-title">{t('RAMPAGE ARMORY')}</h1>
         <VisitorStats />
         <div style={{ marginTop: '15px', color: '#666', fontSize: '0.75rem', lineHeight: '1.4', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>SHOP IS SUBJECT TO CHANGE</p>
-          <p style={{ margin: '4px 0 0 0' }}>DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED</p>
+          <p style={{ margin: 0, fontWeight: 'bold', color: '#888' }}>{t('SHOP IS SUBJECT TO CHANGE')}</p>
+          <p style={{ margin: '4px 0 0 0' }}>{t("DEVELOPERS COULD UPDATE THEM AT ANY MOMENT SO DON'T TAKE THEM FOR GRANTED")}</p>
         </div>
       </header>
 
@@ -242,7 +244,7 @@ function App() {
           className={`hero-btn ${selectedHero === null ? 'active' : ''}`}
           onClick={() => setSelectedHero(null)}
         >
-          All Heroes
+          {t('All Heroes')}
         </button>
         {heroes.map(hero => (
           <button
@@ -279,7 +281,7 @@ function App() {
             borderColor: sortByPopularity ? '#ff4081' : undefined
           }}
         >
-          {sortByPopularity ? '❤️ Sorted by Most Liked' : 'Sort by Most Liked'}
+          {sortByPopularity ? `❤️ ${t('Sorted by Most Liked')}` : t('Sort by Most Liked')}
         </button>
       </div>
 
@@ -308,14 +310,14 @@ function App() {
                 filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot"></span>
-              Live Now
+              {t('Live Now')}
               {nextResetDate && <ShopTimer targetDate={nextResetDate} onExpire={handleShopReset} />}
             </h2>
             <div className="section-line"></div>
           </div>
 
           {filteredData.available.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No weapons currently available.</p>
+            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>{t('No weapons currently available.')}</p>
           ) : (
             <div className="grid-layout">
               {filteredData.available.map(offer => (
@@ -348,7 +350,7 @@ function App() {
                   filter: 'drop-shadow(0 0 5px #ffaa00)'
                 }}></div>
                 <span className="pulse-dot" style={{ backgroundColor: '#ffaa00' }}></span>
-                Upcoming
+                {t('Upcoming')}
               </h2>
               <div className="section-line"></div>
             </div>
@@ -383,13 +385,13 @@ function App() {
                 filter: 'drop-shadow(0 0 5px #ffaa00)'
               }}></div>
               <span className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-blue)' }}></span>
-              Coming Soon
+              {t('Coming Soon')}
             </h2>
             <div className="section-line"></div>
           </div>
 
           {filteredData.comingSoon.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>No other upcoming shipments detected.</p>
+            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>{t('No other upcoming shipments detected.')}</p>
           ) : (
             <div className="grid-layout" style={{ opacity: 0.85 }}>
               {filteredData.comingSoon.map(offer => (

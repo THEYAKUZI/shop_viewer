@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
+import { useLanguage } from '../contexts/LanguageContext';
 import html2canvas from 'html2canvas';
 
 // Cache to store Data URLs for images to speed up repeated copies
@@ -7,6 +8,7 @@ const imgCache = new Map();
 
 export default function OfferCard({ offer }) {
     const cardRef = useRef(null);
+    const { t } = useLanguage();
     const [isCopying, setIsCopying] = useState(false);
     const item = offer.items[0]; // Primary item
     const { weapon, aesthetic, modifiers, detail } = item;
@@ -141,7 +143,7 @@ export default function OfferCard({ offer }) {
                         fontWeight: 'bold',
                         letterSpacing: '0.5px'
                     }}>
-                        MAX STARS
+                        {t('MAX STARS')}
                     </span>
                 )}
             </span>
@@ -180,14 +182,15 @@ export default function OfferCard({ offer }) {
         };
 
         if (typeMap[mod.MODIFIER_TYPE]) {
-            return typeMap[mod.MODIFIER_TYPE];
+            return t(typeMap[mod.MODIFIER_TYPE]);
         }
 
         // Fallback: Title Case the type
         if (mod.MODIFIER_TYPE) {
-            return mod.MODIFIER_TYPE.split('_')
+            const formatted = mod.MODIFIER_TYPE.split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
+            return formatted;
         }
 
         return mod.Name || mod.Constant;
@@ -218,7 +221,7 @@ export default function OfferCard({ offer }) {
                     />
                 </div>
             </div>
-            {isLegendary && <div className="legendary-badge">LEGENDARY</div>}
+            {isLegendary && <div className="legendary-badge">{t('LEGENDARY')}</div>}
 
             <div className="card-title" style={{
                 color: isLegendary ? 'var(--color-rarity-legendary)' : 'white',
@@ -233,7 +236,7 @@ export default function OfferCard({ offer }) {
 
             <div className="card-stats">
                 <div className="stat-row">
-                    <span>Level</span>
+                    <span>{t('Level')}</span>
                     <span style={{ color: '#fff' }}>{detail.Level || 1}</span>
                 </div>
                 <div className="stat-row">
@@ -243,19 +246,19 @@ export default function OfferCard({ offer }) {
                             alt=""
                             style={{ width: '16px', height: '16px', verticalAlign: 'middle' }}
                         />
-                        <span>Power</span>
+                        <span>{t('Power')}</span>
                     </div>
                     <span style={{ color: '#fff' }}>{detail.WeaponPower || weapon.Power}</span>
                 </div>
                 <div className="stat-row">
-                    <span>Speed</span>
+                    <span>{t('Speed')}</span>
                     <span style={{ color: '#fff' }}>{weapon.Speed}</span>
                 </div>
 
                 {/* Modifiers Section */}
                 {modifiers.length > 0 && (
                     <div style={{ marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #333' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '5px', textTransform: 'uppercase' }}>Modifiers</div>
+                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '5px', textTransform: 'uppercase' }}>{t('Modifiers')}</div>
                         {modifiers.map((mod, idx) => (
                             <div key={idx} style={{
                                 display: 'flex',
@@ -342,11 +345,11 @@ export default function OfferCard({ offer }) {
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 )}
-                <div className="hover-label-copy">COPY</div>
+                <div className="hover-label-copy">{t('COPY')}</div>
             </button>
 
             <div className="dates">
-                <span style={{ fontWeight: 'bold', marginRight: '4px' }}>RELEASE DATE:</span>
+                <span style={{ fontWeight: 'bold', marginRight: '4px' }}>{t('RELEASE DATE')}:</span>
                 {new Date(offer.startDate).toLocaleDateString()}
             </div>
         </div>

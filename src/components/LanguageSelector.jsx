@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import './LanguageSelector.css';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const LanguageSelector = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [currentLang, setCurrentLang] = useState('EN');
+    const { language, setLanguage } = useLanguage();
 
     const languages = [
         { code: 'EN', label: 'English', flag: '🇺🇸' },
@@ -11,13 +12,11 @@ const LanguageSelector = () => {
     ];
 
     const handleLanguageChange = (langCode) => {
-        setCurrentLang(langCode);
+        setLanguage(langCode);
         setIsOpen(false);
-        // Dispatch a custom event or callback if parent needed
-        console.log(`Language changed to ${langCode}`);
     };
 
-    const currentLangObj = languages.find(l => l.code === currentLang) || languages[0];
+    const currentLangObj = languages.find(l => l.code === language) || languages[0];
 
     return (
         <div
@@ -35,7 +34,7 @@ const LanguageSelector = () => {
                     {languages.map(lang => (
                         <button
                             key={lang.code}
-                            className={`dropdown-item ${currentLang === lang.code ? 'active' : ''}`}
+                            className={`dropdown-item ${language === lang.code ? 'active' : ''}`}
                             onClick={() => handleLanguageChange(lang.code)}
                         >
                             <span className="flag-icon">{lang.flag}</span>
