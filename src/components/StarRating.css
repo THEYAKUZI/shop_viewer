@@ -17,16 +17,23 @@
 .star {
     font-size: 1.2rem;
     color: #555;
-    transition: color 0.2s, transform 0.1s;
+    position: relative;
+    display: inline-block;
+    transition: transform 0.1s;
     user-select: none;
 }
 
-.star.filled {
+.star::before {
+    content: '★';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--fill-percent, 0%);
+    overflow: hidden;
     color: #ffd700;
-}
-
-.star.hovered {
-    color: #ffe066;
+    transition: width 0.2s;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .star:hover {

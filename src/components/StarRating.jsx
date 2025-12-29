@@ -62,18 +62,20 @@ export default function StarRating({ offerId }) {
                     // Let's stick to simple: Inteactive stars. 
 
 
+
                     const effectiveRating = hoverRating > 0
                         ? hoverRating
-                        : (Math.round(data.average) || 0);
+                        : (data.average || 0);
 
-                    const isFilled = star <= effectiveRating;
+                    const fillPercentage = Math.max(0, Math.min(100, (effectiveRating - (star - 1)) * 100));
 
                     const isMyRating = data.myRating && star <= data.myRating;
 
                     return (
                         <span
                             key={star}
-                            className={`star ${isFilled ? 'filled' : ''} ${hoverRating >= star ? 'hovered' : ''} ${isMyRating ? 'my-rating' : ''}`}
+                            className={`star ${isMyRating ? 'my-rating' : ''}`}
+                            style={{ '--fill-percent': `${fillPercentage}%` }}
                             onMouseEnter={() => setHoverRating(star)}
                             onClick={(e) => {
                                 e.stopPropagation();
