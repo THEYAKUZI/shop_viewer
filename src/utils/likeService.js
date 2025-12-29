@@ -1,22 +1,22 @@
 import { db } from '../firebase';
-import { ref, onValue, runTransaction } from 'firebase/database';
+import { ref, onValue, runTransaction, get } from 'firebase/database';
 
-const LOCAL_STORAGE_KEY = 'rampage_user_votes_v1';
+const LOCAL_STORAGE_KEY = 'rampage_user_likes_v1';
 
-// Helpers for local tracking
-const getLocalVote = (id) => {
+// Helpers for local tracking (did *I* like this?)
+const getLocalLikeStatus = (id) => {
     try {
         const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-        return stored[id] || null; // 'up', 'down', or null
+        return !!stored[id];
     } catch {
-        return null;
+        return false;
     }
 };
 
-const setLocalVote = (id, voteType) => {
+const setLocalLikeStatus = (id, status) => {
     try {
         const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-        if (voteType) stored[id] = voteType;
+        if (status) stored[id] = true;
         else delete stored[id];
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stored));
     } catch (e) {
@@ -26,121 +26,97 @@ const setLocalVote = (id, voteType) => {
 
 // --- Real Implementation ---
 
-export const subscribeToVotes = (id, onUpdate) => {
+export const subscribeToLikes = (id, onUpdate) => {
+    const isLikedLocally = getLocalLikeStatus(id);
+
+    // If Firebase is configured
     if (db) {
-        const votesRef = ref(db, `votes/${id}`);
-        const unsubscribe = onValue(votesRef, (snapshot) => {
-            const val = snapshot.val() || { up: 0, down: 0 };
-            const up = val.up || 0;
-            const down = val.down || 0;
-            const score = up - down;
-            const userVote = getLocalVote(id);
-
-            // Calculate percentage (optional usage)
-            const total = up + down;
-            const percentage = total > 0 ? Math.round((up / total) * 100) : 0;
-
-            onUpdate({
-                score,
-                up,
-                down,
-                percentage,
-                userVote
-            });
+        const likesRef = ref(db, `likes/${id}`);
+        const unsubscribe = onValue(likesRef, (snapshot) => {
+            const val = snapshot.val();
+            const count = (typeof val === 'number') ? val : 0;
+            const currentLikedStatus = getLocalLikeStatus(id);
+            onUpdate({ count, isLiked: currentLikedStatus });
         });
         return unsubscribe;
     }
 
-    // Mock Mode
+    // Fallback: Mock mode (similar to previous version)
+    // We simulate a subscription by returning immediate value
+    // and listening for window events
     const mockHash = (str) => {
         let hash = 0;
         for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        return Math.abs(hash % 100);
+        return Math.abs(hash % 145) + 5;
     };
 
-    // Simulate some existing votes
-    let baseUp = mockHash(id);
-    let baseDown = mockHash(id + 'down') % 20;
+    // Initial callback
+    let mockCount = mockHash(id);
+    // Adjust mock count based on local like status to mimic server
+    // (If I liked it locally, but we are mocking server, we assume server count includes me)
+    // Actually simplicity: Mock count is static base + 1 if liked.
 
-    // Adjust for local user action in mock mode
     const sendUpdate = () => {
-        const userVote = getLocalVote(id);
-        let up = baseUp;
-        let down = baseDown;
-
-        if (userVote === 'up') up++;
-        if (userVote === 'down') down++;
-
-        const score = up - down;
-        const total = up + down;
-        const percentage = total > 0 ? Math.round((up / total) * 100) : 0;
-
-        onUpdate({ score, up, down, percentage, userVote });
+        const liked = getLocalLikeStatus(id);
+        onUpdate({
+            count: mockCount + (liked ? 1 : 0),
+            isLiked: liked
+        });
     };
 
     sendUpdate();
+
     const handleStorage = () => sendUpdate();
-    window.addEventListener('mock-vote-update', handleStorage);
-    return () => window.removeEventListener('mock-vote-update', handleStorage);
+    window.addEventListener('mock-like-update', handleStorage);
+
+    return () => {
+        window.removeEventListener('mock-like-update', handleStorage);
+    };
 };
 
-export const handleVote = async (id, type) => {
-    // type: 'up' | 'down'
-    const currentVote = getLocalVote(id);
-    let newVote = type;
+export const toggleLike = async (id) => {
+    const wasLiked = getLocalLikeStatus(id);
+    const newStatus = !wasLiked;
 
-    // If clicking same button, toggle off
-    if (currentVote === type) {
-        newVote = null;
-    }
-
-    setLocalVote(id, newVote);
+    setLocalLikeStatus(id, newStatus);
 
     if (db) {
-        const votesRef = ref(db, `votes/${id}`);
+        // Update Firebase
+        const likesRef = ref(db, `likes/${id}`);
         try {
-            await runTransaction(votesRef, (currentData) => {
-                if (currentData === null) currentData = { up: 0, down: 0 };
-
-                // Remove influence of old vote
-                if (currentVote === 'up') currentData.up = Math.max(0, (currentData.up || 0) - 1);
-                if (currentVote === 'down') currentData.down = Math.max(0, (currentData.down || 0) - 1);
-
-                // Add influence of new vote
-                if (newVote === 'up') currentData.up = (currentData.up || 0) + 1;
-                if (newVote === 'down') currentData.down = (currentData.down || 0) + 1;
-
-                return currentData;
+            await runTransaction(likesRef, (currentCount) => {
+                if (currentCount === null) return 1; // Initialize
+                // If we are liking, +1. If unliking, -1.
+                return newStatus ? (currentCount + 1) : (currentCount - 1);
             });
         } catch (e) {
             console.error("Firebase transaction failed:", e);
+            // Revert local status if network fails? 
+            // For now, keep optimistic UI or revert. 
+            // Simple: don't revert, just log.
         }
     } else {
-        // Mock Update
-        window.dispatchEvent(new Event('mock-vote-update'));
+        // Update Mock
+        window.dispatchEvent(new Event('mock-like-update'));
     }
 
-    return newVote;
+    return newStatus;
 };
 
-// Maintained for App.jsx sorting (returns map of ID -> Score)
 export const subscribeToAllLikes = (onUpdate) => {
     if (db) {
-        const votesRef = ref(db, 'votes');
-        const unsubscribe = onValue(votesRef, (snapshot) => {
+        const likesRef = ref(db, 'likes');
+        const unsubscribe = onValue(likesRef, (snapshot) => {
             const val = snapshot.val() || {};
-            const scores = {};
-            Object.keys(val).forEach(key => {
-                const item = val[key];
-                const up = item.up || 0;
-                const down = item.down || 0;
-                scores[key] = up - down;
-            });
-            onUpdate(scores);
+            onUpdate(val);
         });
         return unsubscribe;
     }
 
+    // Mock fallback
+    // In mock mode, we don't really have "all" likes easily accessible or changing 
+    // without iterating everything, but for filtering we can return an empty object or mock data.
+    // For now, let's just return empty in mock mode properly to avoid errors.
     onUpdate({});
     return () => { };
 };
