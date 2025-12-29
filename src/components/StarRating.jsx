@@ -28,6 +28,17 @@ export default function StarRating({ offerId }) {
         }
     };
 
+    const getRatingLabel = (rating) => {
+        switch (rating) {
+            case 1: return "Very Bad";
+            case 2: return "Bad";
+            case 3: return "Mid";
+            case 4: return "Good";
+            case 5: return "Perfection";
+            default: return "";
+        }
+    };
+
     return (
         <div className="star-rating-container" title="Rate this item">
             <div
@@ -68,14 +79,20 @@ export default function StarRating({ offerId }) {
                     );
                 })}
             </div>
-            <div className="rating-stats">
-                {data.count > 0 ? (
-                    <>
-                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{data.average}</span>
-                        <span style={{ fontSize: '0.65em', marginLeft: '2px', opacity: 0.7 }}>({data.count})</span>
-                    </>
+            <div className="rating-stats" style={{ minHeight: '1.2em' }}>
+                {hoverRating > 0 ? (
+                    <span style={{ color: '#ffd700', fontWeight: 'bold', textTransform: 'capitalize' }}>
+                        {getRatingLabel(hoverRating)}
+                    </span>
                 ) : (
-                    <span style={{ opacity: 0.7 }}>No ratings</span>
+                    data.count > 0 ? (
+                        <>
+                            <span style={{ color: '#fff', fontWeight: 'bold' }}>{data.average}</span>
+                            <span style={{ fontSize: '0.65em', marginLeft: '2px', opacity: 0.7 }}>({data.count})</span>
+                        </>
+                    ) : (
+                        <span style={{ opacity: 0.7 }}>No ratings</span>
+                    )
                 )}
             </div>
         </div>
