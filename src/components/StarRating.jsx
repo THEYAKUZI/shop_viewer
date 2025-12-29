@@ -61,14 +61,19 @@ export default function StarRating({ offerId }) {
                     // BUT for "average", we often show the average stars if user hasn't rated.
                     // Let's stick to simple: Inteactive stars. 
 
-                    const isFilled = hoverRating > 0
-                        ? star <= hoverRating
-                        : (data.myRating && star <= data.myRating);
+
+                    const effectiveRating = hoverRating > 0
+                        ? hoverRating
+                        : (Math.round(data.average) || 0);
+
+                    const isFilled = star <= effectiveRating;
+
+                    const isMyRating = data.myRating && star <= data.myRating;
 
                     return (
                         <span
                             key={star}
-                            className={`star ${isFilled ? 'filled' : ''} ${hoverRating >= star ? 'hovered' : ''}`}
+                            className={`star ${isFilled ? 'filled' : ''} ${hoverRating >= star ? 'hovered' : ''} ${isMyRating ? 'my-rating' : ''}`}
                             onMouseEnter={() => setHoverRating(star)}
                             onClick={(e) => {
                                 e.stopPropagation();
