@@ -25,15 +25,17 @@ export const initVisitorTracking = (onUpdate) => {
     // 2. Online Users (Presence)
     // Reference to standard firebase presence system
     const connectedRef = ref(db, '.info/connected');
-    const onlineUsersRef = ref(db, 'stats/onlineUsers');
+    const onlineUsersRef = ref(db, 'stats/live_sessions_v1'); // Changed key to reset
+    let myUserRef;
 
     // Monitor connection state
-    onValue(connectedRef, (snap) => {
+    const unsubConnected = onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
             // We're connected!
-            const myUserRef = push(onlineUsersRef);
+            // Create a reference specifically for this session
+            myUserRef = push(onlineUsersRef);
 
-            // When we disconnect, remove this ref
+            // When we disconnect (close tab/network loss), remove this ref
             onDisconnect(myUserRef).remove();
 
             // Set our status
@@ -47,37 +49,26 @@ export const initVisitorTracking = (onUpdate) => {
     // 3. Listen for counts to display
     // Total Visits Listener
     const unsubVisits = onValue(visitsRef, (snap) => {
-        const total = snap.val() || 0;
-
-        // Online Users Listener (nested mostly to simplify callback structure, 
-        // realistically should be separate but we want atomic updates for the UI usually)
-        // We'll just read online users here too
-        getOnlineCount(total);
+        onUpdate(prev => ({ ...prev, total: snap.val() || 0 }));
     });
 
     // Separate listener for online count
     const unsubOnline = onValue(onlineUsersRef, (snap) => {
         const users = snap.val() || {};
         const onlineCount = Object.keys(users).length;
-        // We need to trigger update. We can store total in a variable or re-fetch.
-        // For simplicity, let's assume the onUpdate handles partials or we pass current state.
-        // Actually, let's explicitly read totalVisits current value? No, that's heavy.
-        // Better pattern: Update state with whatever we have.
         onUpdate(prev => ({ ...prev, online: onlineCount }));
     });
 
-    // Modified the visits listener to use the functional update pattern too
-    const unsubVisits2 = onValue(visitsRef, (snap) => {
-        onUpdate(prev => ({ ...prev, total: snap.val() || 0 }));
-    });
-
     return () => {
-        unsubVisits2();
+        unsubVisits();
         unsubOnline();
-        // It's good practice to cleanup listeners, but 'onDisconnect' happens server-side 
-        // automatically when the socket closes (closing tab).
-        // However, if we unmount component but don't close tab, we might want to manually remove.
-        // We'll leave automatic handling for now as it's most robust for 'closing website'.
+        unsubConnected();
+
+        // Manual cleanup: If the component unmounts (e.g. navigation), 
+        // remove our specific node so we don't count as double if we come back.
+        if (myUserRef) {
+            set(myUserRef, null).catch(err => console.error("Cleanup failed", err));
+        }
     };
 };
 
