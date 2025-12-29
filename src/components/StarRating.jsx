@@ -17,12 +17,14 @@ export default function StarRating({ offerId }) {
 
     const handleRate = async (rating) => {
         if (isSubmitting) return;
-        // removing optimistic update to avoid flash if transaction is slow, 
-        // relying on transaction returning or subscription update? 
-        // Subscription is fast usually.
         setIsSubmitting(true);
         try {
-            await submitRating(offerId, rating);
+            // Toggle off if clicking same rating
+            if (data.myRating === rating) {
+                await submitRating(offerId, null);
+            } else {
+                await submitRating(offerId, rating);
+            }
         } finally {
             setIsSubmitting(false);
         }

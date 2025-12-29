@@ -17,7 +17,11 @@ const getLocalRating = (id) => {
 const setLocalRating = (id, rating) => {
     try {
         const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_RATINGS) || '{}');
-        stored[id] = rating;
+        if (rating === null || rating === undefined) {
+            delete stored[id];
+        } else {
+            stored[id] = rating;
+        }
         localStorage.setItem(LOCAL_STORAGE_KEY_RATINGS, JSON.stringify(stored));
     } catch (e) {
         console.error("Local storage error:", e);
@@ -76,6 +80,7 @@ export const subscribeToRatings = (id, onUpdate) => {
     };
 };
 
+
 export const submitRating = async (id, newRating) => {
     const oldRating = getLocalRating(id);
 
@@ -88,12 +93,19 @@ export const submitRating = async (id, newRating) => {
         try {
             await runTransaction(ratingRef, (currentData) => {
                 if (currentData === null) {
+                    if (newRating === null) return null; // Can't delete what doesn't exist
                     return { sum: newRating, count: 1 };
                 }
 
                 let { sum = 0, count = 0 } = currentData;
 
-                if (oldRating !== undefined) {
+                if (newRating === null) {
+                    // Removing rating
+                    if (oldRating !== undefined) {
+                        sum = Math.max(0, sum - oldRating);
+                        count = Math.max(0, count - 1);
+                    }
+                } else if (oldRating !== undefined) {
                     // Updating existing rating
                     sum = sum - oldRating + newRating;
                 } else {
