@@ -1,87 +1,115 @@
-.like-btn {
+/* Vote Widget Container */
+.vote-widget {
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ccc;
-    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 500;
-    font-size: 0.9rem;
-    position: relative;
-    /* Ensure positioning context */
+    /* Pill shape */
+    padding: 2px 4px;
+    height: 34px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.like-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+.vote-widget:hover {
+    background: rgba(0, 0, 0, 0.8);
     transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.like-btn.liked {
-    background: rgba(255, 64, 129, 0.15);
-    border-color: rgba(255, 64, 129, 0.3);
-    color: #ff4081;
+/* Buttons */
+.vote-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    outline: none;
 }
 
-.heart-icon {
-    width: 18px;
-    height: 18px;
+.vote-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+}
+
+/* Upvote Styles */
+.vote-btn.up.active {
+    color: #00e676;
+    /* Green */
+}
+
+.vote-btn.up:hover {
+    color: #69f0ae;
+}
+
+/* Downvote Styles */
+.vote-btn.down.active {
+    color: #ff1744;
+    /* Red */
+}
+
+.vote-btn.down:hover {
+    color: #ff5252;
+}
+
+.icon-wrapper {
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.heart-icon svg {
+.icon-wrapper svg {
     width: 100%;
     height: 100%;
+    /* Ensure the fill takes effect */
 }
 
-.like-count {
-    min-width: 15px;
-    text-align: left;
+/* Score Display */
+.vote-score {
+    min-width: 28px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0 2px;
+    font-family: 'Outfit', sans-serif;
+    user-select: none;
+    cursor: default;
 }
 
-/* Hover Label for Like Button */
-.hover-label {
-    position: absolute;
-    bottom: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-    white-space: nowrap;
-    z-index: 20;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+.vote-score.positive {
+    color: #00e676;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
 }
 
-.like-btn:hover .hover-label {
-    opacity: 1;
+.vote-score.negative {
+    color: #ff1744;
+    text-shadow: 0 0 10px rgba(255, 23, 68, 0.2);
 }
 
-/* Heart pop animation */
-.like-btn.animating .heart-icon {
-    animation: heartPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Animations */
+.vote-btn.animating .icon-wrapper {
+    animation: bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes heartPop {
+@keyframes bounce {
     0% {
         transform: scale(1);
     }
 
     50% {
-        transform: scale(1.5);
+        transform: scale(1.4);
     }
 
     100% {

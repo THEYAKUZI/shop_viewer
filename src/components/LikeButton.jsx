@@ -1,43 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeToLikes, toggleLike } from '../utils/likeService';
+import { subscribeToVotes, handleVote } from '../utils/likeService';
 import './LikeButton.css';
 
 export default function LikeButton({ offerId }) {
-    const [data, setData] = useState({ count: 0, isLiked: false });
-    const [animating, setAnimating] = useState(false);
+    const [data, setData] = useState({ score: 0, up: 0, down: 0, userVote: null });
+    const [animating, setAnimating] = useState(null);
 
     useEffect(() => {
-        const unsubscribe = subscribeToLikes(offerId, (newData) => {
+        const unsubscribe = subscribeToVotes(offerId, (newData) => {
             setData(newData);
         });
         return () => unsubscribe();
     }, [offerId]);
 
-    const handleClick = (e) => {
-        e.stopPropagation(); // Prevent card click
+    const onVote = (type) => (e) => {
+        e.stopPropagation();
         e.preventDefault();
 
-        if (!data.isLiked) {
-            setAnimating(true);
-            setTimeout(() => setAnimating(false), 600);
+        // Trigger animation if turning ON a vote
+        if (data.userVote !== type) {
+            setAnimating(type);
+            setTimeout(() => setAnimating(null), 400);
         }
 
-        toggleLike(offerId);
+        handleVote(offerId, type);
     };
 
+    const isUp = data.userVote === 'up';
+    const isDown = data.userVote === 'down';
+
+    // Format score: +15, -5, 0 (Neutral)
+    const formattedScore = data.score > 0 ? `+${data.score}` : data.score;
+
     return (
-        <button
-            className={`like-btn ${data.isLiked ? 'liked' : ''} ${animating ? 'animating' : ''}`}
-            onClick={handleClick}
-            title={data.isLiked ? "Unlike" : "Like"}
-        >
-            <div className="heart-icon">
-                <svg viewBox="0 0 24 24" fill={data.isLiked ? "#ff4081" : "none"} stroke={data.isLiked ? "#ff4081" : "currentColor"} strokeWidth="2">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-            </div>
-            <span className="like-count">{data.count}</span>
-            <div className="hover-label">RECOMMEND</div>
-        </button>
+        <div className="vote-widget" onClick={(e) => e.stopPropagation()}>
+            <button
+                className={`vote-btn up ${isUp ? 'active' : ''} ${animating === 'up' ? 'animating' : ''}`}
+                onClick={onVote('up')}
+                title="Buff (Good Stats)"
+                aria-label="Upvote"
+            >
+                <div className="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+                    </svg>
+                </div>
+            </button>
+            <span
+                className={`vote-score ${data.score > 0 ? 'positive' : data.score < 0 ? 'negative' : ''}`}
+                title={`+${data.up} / -${data.down}`}
+            >
+                {formattedScore}
+            </span>
+            <button
+                className={`vote-btn down ${isDown ? 'active' : ''} ${animating === 'down' ? 'animating' : ''}`}
+                onClick={onVote('down')}
+                title="Debuff (Bad Stats)"
+                aria-label="Downvote"
+            >
+                <div className="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.41 8.59L12 13.17 16.59 8.59 18 10l-6 6-6-6 1.41-1.41z" />
+                    </svg>
+                </div>
+            </button>
+        </div>
     );
 }
