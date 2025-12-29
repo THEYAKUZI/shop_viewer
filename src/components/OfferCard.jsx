@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
+import StarRating from './StarRating';
 import { useLanguage } from '../contexts/LanguageContext';
 import html2canvas from 'html2canvas';
 
@@ -308,9 +309,19 @@ export default function OfferCard({ offer }) {
                 </div>
             </div>
 
-            {/* Like Button */}
-            <div style={{ position: 'absolute', top: '40px', right: '10px', zIndex: 10 }}>
+            {/* Like and Rating System */}
+            <div style={{
+                position: 'absolute',
+                top: '40px',
+                right: '10px',
+                zIndex: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '5px'
+            }}>
                 <LikeButton offerId={offer.Id} />
+                <StarRating offerId={offer.Id} />
             </div>
 
             {/* Copy Button */}
