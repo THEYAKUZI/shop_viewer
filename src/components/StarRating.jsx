@@ -36,7 +36,7 @@ export default function StarRating({ offerId }) {
             case 2: return "Bad";
             case 3: return "Mid";
             case 4: return "Good";
-            case 5: return "Perfection";
+            case 5: return "Very Good";
             default: return "";
         }
     };
