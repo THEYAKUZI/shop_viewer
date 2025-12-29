@@ -31,9 +31,15 @@
     width: var(--fill-percent, 0%);
     overflow: hidden;
     color: #ffd700;
-    transition: width 0.2s;
+    transition: width 0.2s, opacity 0.2s;
     white-space: nowrap;
     pointer-events: none;
+    opacity: 1;
+}
+
+.star.dim::before {
+    opacity: 0.5;
+    /* Dimmed for average rating */
 }
 
 .star:hover {
