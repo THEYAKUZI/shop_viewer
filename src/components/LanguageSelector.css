@@ -1,7 +1,8 @@
 .language-selector {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    position: relative;
+    /* Removed absolute positioning to allow grouping in App.jsx */
+    /* top: 20px; */
+    /* right: 20px; */
     z-index: 1000;
 }
 

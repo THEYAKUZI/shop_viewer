@@ -228,7 +228,44 @@ function App() {
 
   return (
     <div className="main-wrapper">
-      <LanguageSelector />
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        right: '25px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '10px',
+        zIndex: 1000
+      }}>
+        <LanguageSelector />
+        <a
+          href="https://discord.gg/Ww9HX27JmU"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="discord-btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#5865F2',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            fontFamily: 'var(--font-main, sans-serif)',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+            transition: 'all 0.2s',
+            border: '1px solid #4752C4'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4752C4'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#5865F2'; e.currentTarget.style.transform = 'translateY(0)'; }}
+        >
+          {t('Join Discord')}
+        </a>
+      </div>
       <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
         <h1 className="header-title">{t('RAMPAGE ARMORY')}</h1>
         <VisitorStats />
