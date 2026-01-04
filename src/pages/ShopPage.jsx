@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 
 import OfferCard from '../components/OfferCard';
 import ShopTimer from '../components/ShopTimer';
@@ -266,30 +266,7 @@ function ShopPage() {
                 >
                     {t('Join Discord')}
                 </a>
-                <Link
-                    to="/community-forge"
-                    className="discord-btn"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#FF5722', // Orange for differentiation
-                        color: 'white',
-                        padding: '8px 16px',
-                        borderRadius: '4px',
-                        textDecoration: 'none',
-                        fontSize: '0.9rem',
-                        fontWeight: 'bold',
-                        fontFamily: 'var(--font-main, sans-serif)',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-                        transition: 'all 0.2s',
-                        border: '1px solid #E64A19'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#E64A19'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#FF5722'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                    {t('Community Forge')}
-                </Link>
+
             </div>
             <header className="animate-fade-in" style={{ marginBottom: '30px' }}>
                 <h1 className="header-title">{t('RAMPAGE ARMORY')}</h1>
