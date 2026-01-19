@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAnalytics } from "firebase/analytics";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your provided configuration with Database URL assumption
 const firebaseConfig = {
@@ -17,23 +16,12 @@ const firebaseConfig = {
     databaseURL: "https://rampagearmory-default-rtdb.firebaseio.com"
 };
 
-// reCAPTCHA v3 Site Key for App Check
-const RECAPTCHA_SITE_KEY = "6LfIn08sAAAAAKGrTqQwBm8G98ANaOuu57r5nh2P";
-
 // Initialize Firebase
-let app, db, analytics, appCheck;
+let app, db, analytics;
 
 try {
     app = initializeApp(firebaseConfig);
     analytics = getAnalytics(app);
-    
-    // Initialize App Check with reCAPTCHA v3
-    appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
-        isTokenAutoRefreshEnabled: true
-    });
-    console.log("App Check initialized successfully");
-    
     // Initialize Database
     db = getDatabase(app);
     console.log("Firebase connected successfully to:", firebaseConfig.databaseURL);
@@ -41,4 +29,4 @@ try {
     console.error("FIREBASE INIT ERROR:", error);
 }
 
-export { db, app, analytics, appCheck };
+export { db, app, analytics };
