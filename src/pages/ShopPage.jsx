@@ -104,7 +104,7 @@ function ShopPage() {
 
     useEffect(() => {
         // Fetch data
-        fetch('DB_GameMaster.json')
+        fetch(`DB_GameMaster.json?v=${Date.now()}`)
             .then(res => {
                 if (!res.ok) throw new Error("Failed to load DB_GameMaster.json. Please ensure it is in the public folder.");
                 return res.json();
