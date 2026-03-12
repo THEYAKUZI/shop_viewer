@@ -21,12 +21,6 @@ const VisitorStats = () => {
     return (
         <div className="visitor-stats">
             <div className="stat-item">
-                <span className="dot online"></span>
-                <span className="stat-val">{stats.online}</span>
-                <span className="stat-label">ONLINE</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item">
                 <span className="stat-val">{stats.total.toLocaleString()}</span>
                 <span className="stat-label">VISITS</span>
             </div>
