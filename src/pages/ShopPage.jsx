@@ -32,7 +32,7 @@ function ShopPage() {
         try {
             const offers = parseGameMaster(json);
             const parsedHeroes = parseHeroes(json);
-            const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Vampire Hunter': 5, 'Ghost Samurai': 6 };
+            const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Ghost Samurai': 5, 'Vampire Hunter': 6 };
             parsedHeroes.sort((a, b) => (order[a.name] || 99) - (order[b.name] || 99));
             setHeroes(parsedHeroes);
 
@@ -180,11 +180,11 @@ function ShopPage() {
                     </div>
                     <nav className="nav-links">
                         <a href="#" className="nav-link active">{t('SHOP')}</a>
-                        <a href="#" className="nav-link">{t('HEROES')}</a>
-                        <a href="#" className="nav-link">{t('ITEMS')}</a>
-                        <a href="#" className="nav-link">{t('BUNDLES')}</a>
-                        <a href="#" className="nav-link">{t('GUIDES')}</a>
-                        <a href="#" className="nav-link">{t('LEADERBOARD')}</a>
+                        <a href="#" className="nav-link disabled" title="Coming Soon">{t('HEROES')} <span className="nav-wip">WIP</span></a>
+                        <a href="#" className="nav-link disabled" title="Coming Soon">{t('ITEMS')} <span className="nav-wip">WIP</span></a>
+                        <a href="#" className="nav-link disabled" title="Coming Soon">{t('BUNDLES')} <span className="nav-wip">WIP</span></a>
+                        <a href="#" className="nav-link disabled" title="Coming Soon">{t('GUIDES')} <span className="nav-wip">WIP</span></a>
+                        <a href="#" className="nav-link disabled" title="Coming Soon">{t('LEADERBOARD')} <span className="nav-wip">WIP</span></a>
                     </nav>
                     <div className="nav-right">
                         <LanguageSelector />

@@ -155,6 +155,24 @@ body {
 }
 
 .nav-link:hover { color: var(--text-0); }
+
+.nav-link.disabled {
+    opacity: 0.75;
+    pointer-events: none;
+    cursor: default;
+}
+
+.nav-wip {
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(248, 135, 2, 0.15);
+    color: var(--accent-dim);
+    vertical-align: middle;
+    margin-left: 4px;
+}
 .nav-link.active {
     color: var(--accent);
     position: relative;
@@ -238,6 +256,69 @@ body {
     color: var(--text-1);
     line-height: 1.5;
     margin-bottom: 16px;
+}
+
+/* ===================== PROMO BANNER ===================== */
+.promo-banner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 32px 8px;
+}
+
+.promo-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(248, 135, 2, 0.25);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+}
+
+.promo-badge {
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #000;
+    flex-shrink: 0;
+}
+
+.promo-text {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--text-1);
+}
+
+.promo-text strong {
+    color: var(--accent);
+}
+
+.promo-btn {
+    flex-shrink: 0;
+    padding: 8px 20px;
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    border-radius: 5px;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.promo-btn:hover {
+    background: linear-gradient(180deg, #FFa830, #F88702);
+    color: #0a0804;
+    border-color: #FFa830;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(248, 135, 2, 0.4);
 }
 
 /* ===================== TWO-COLUMN BODY LAYOUT ===================== */
