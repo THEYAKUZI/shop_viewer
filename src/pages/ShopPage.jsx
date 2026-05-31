@@ -17,6 +17,7 @@ function ShopPage() {
     const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
     const [heroes, setHeroes] = useState([]);
     const [selectedHero, setSelectedHero] = useState(null);
+    const [hasInteracted, setHasInteracted] = useState(false);
     const [modifierOptions, setModifierOptions] = useState([]);
     const [selectedModifiers, setSelectedModifiers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -217,10 +218,13 @@ function ShopPage() {
                     <div className="hero-selector-row">
                         <button
                             className={`hero-select-btn ${selectedHero === null ? 'active' : ''}`}
-                            onClick={() => setSelectedHero(null)}
+                            onClick={() => { setHasInteracted(true); setSelectedHero(null); }}
                         >
                             <div className="hero-select-icon-wrap">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                <svg className={`all-heroes-check ${selectedHero === null ? 'checked' : ''} ${hasInteracted ? 'animated' : ''}`} viewBox="0 0 24 24" width="28" height="28">
+                                    <circle cx="12" cy="12" r="10" className="check-circle" fill="none" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M8 12l3 3 5-6" className="check-mark" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                             </div>
                             <span className="hero-select-name">{t('ALL HEROES')}</span>
                         </button>
@@ -228,7 +232,7 @@ function ShopPage() {
                             <button
                                 key={hero.id}
                                 className={`hero-select-btn ${hero.name.toLowerCase().replace(' ', '-')} ${selectedHero?.id === hero.id ? 'active' : ''}`}
-                                onClick={() => setSelectedHero(selectedHero?.id === hero.id ? null : hero)}
+                                onClick={() => { setHasInteracted(true); setSelectedHero(selectedHero?.id === hero.id ? null : hero); }}
                             >
                                 <div className="hero-select-icon-wrap">
                                     {hero.iconName && <img src={`icons/${hero.iconName}.png`} alt="" className="hero-select-icon" onError={(e) => { e.target.style.display = 'none' }} />}

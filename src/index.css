@@ -396,6 +396,29 @@ body {
     fill: var(--accent);
 }
 
+.all-heroes-check .check-circle {
+    stroke: var(--accent);
+    transition: stroke 0.3s;
+}
+
+.all-heroes-check:not(.checked) .check-circle {
+    stroke: var(--text-2);
+}
+
+.all-heroes-check .check-mark {
+    stroke: var(--accent);
+    stroke-dasharray: 20;
+    stroke-dashoffset: 0;
+}
+
+.all-heroes-check.animated .check-mark {
+    transition: stroke-dashoffset 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.all-heroes-check:not(.checked) .check-mark {
+    stroke-dashoffset: 20;
+}
+
 .hero-select-icon {
     width: 36px;
     height: 36px;
