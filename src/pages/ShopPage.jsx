@@ -32,7 +32,7 @@ function ShopPage() {
         try {
             const offers = parseGameMaster(json);
             const parsedHeroes = parseHeroes(json);
-            const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Ghost Samurai': 5, 'Vampire Hunter': 6 };
+            const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Vampire Hunter': 5, 'Battle Chef': 6, 'Ghost Samurai': 7 };
             parsedHeroes.sort((a, b) => (order[a.name] || 99) - (order[b.name] || 99));
             setHeroes(parsedHeroes);
 
