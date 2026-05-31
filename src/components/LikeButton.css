@@ -1,90 +1,64 @@
 .like-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ccc;
-    padding: 6px 10px;
-    border-radius: 20px;
+    gap: 4px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    padding: 4px 9px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 500;
-    font-size: 0.9rem;
+    transition: all 0.12s;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.82rem;
     position: relative;
-    /* Ensure positioning context */
 }
 
 .like-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    transform: translateY(-2px);
+    background: var(--bg-hover);
+    color: var(--text-1);
+    border-color: var(--border-2);
 }
 
 .like-btn.liked {
-    background: rgba(255, 64, 129, 0.15);
-    border-color: rgba(255, 64, 129, 0.3);
-    color: #ff4081;
+    border-color: rgba(200, 64, 64, 0.3);
+    color: var(--red);
+    background: var(--red-bg);
 }
 
-.heart-icon {
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+.heart-icon { width: 14px; height: 14px; display: flex; align-items: center; }
+.heart-icon svg { width: 100%; height: 100%; }
+.like-count { min-width: 10px; text-align: left; }
 
-.heart-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.like-count {
-    min-width: 15px;
-    text-align: left;
-}
-
-/* Hover Label for Like Button */
 .hover-label {
     position: absolute;
-    bottom: -35px;
+    bottom: -24px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
+    background: var(--bg-0);
+    color: var(--text-0);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.62rem;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.12s;
     white-space: nowrap;
     z-index: 20;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: 1px solid var(--border-1);
 }
 
-.like-btn:hover .hover-label {
-    opacity: 1;
-}
+.like-btn:hover .hover-label { opacity: 1; }
 
-/* Heart pop animation */
 .like-btn.animating .heart-icon {
-    animation: heartPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes heartPop {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.5);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.6); }
+    100% { transform: scale(1); }
 }

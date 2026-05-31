@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeToLikes, toggleLike } from '../utils/likeService';
+import { getLocalLikeStatus, subscribeToLikes, toggleLike } from '../utils/likeService';
 import './LikeButton.css';
 
-export default function LikeButton({ offerId }) {
+export default function LikeButton({ offerId, count }) {
     const [data, setData] = useState({ count: 0, isLiked: false });
     const [animating, setAnimating] = useState(false);
+    const hasExternalCount = typeof count === 'number';
 
     useEffect(() => {
+        if (hasExternalCount) {
+            setData({ count, isLiked: getLocalLikeStatus(offerId) });
+            return undefined;
+        }
+
         const unsubscribe = subscribeToLikes(offerId, (newData) => {
             setData(newData);
         });
         return () => unsubscribe();
-    }, [offerId]);
+    }, [count, hasExternalCount, offerId]);
 
     const handleClick = (e) => {
         e.stopPropagation(); // Prevent card click
@@ -21,6 +27,11 @@ export default function LikeButton({ offerId }) {
             setAnimating(true);
             setTimeout(() => setAnimating(false), 600);
         }
+
+        setData(prev => ({
+            count: Math.max(0, prev.count + (prev.isLiked ? -1 : 1)),
+            isLiked: !prev.isLiked
+        }));
 
         toggleLike(offerId);
     };

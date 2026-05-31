@@ -1,116 +1,85 @@
 .language-selector {
     position: relative;
-    /* Removed absolute positioning to allow grouping in App.jsx */
-    /* top: 20px; */
-    /* right: 20px; */
     z-index: 1000;
 }
 
 .lang-btn {
-    background-color: rgba(26, 26, 26, 0.8);
-    border: 1px solid #333;
-    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(100, 100, 100, 0.5);
+    color: rgba(200, 200, 200, 0.85);
     padding: 8px 16px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: var(--font-main, sans-serif);
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    backdrop-filter: blur(5px);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    transition: all 0.12s;
 }
 
 .lang-btn:hover {
-    background-color: rgba(40, 40, 40, 0.9);
-    border-color: #555;
+    background: rgba(0, 0, 0, 0.65);
+    color: #e0e0e0;
+    border-color: rgba(140, 140, 140, 0.5);
 }
 
 .lang-arrow {
-    font-size: 0.7rem;
-    color: #666;
-    transition: transform 0.2s;
+    font-size: 0.55rem;
+    color: rgba(180, 180, 180, 0.6);
+    transition: transform 0.15s;
 }
 
-.language-selector:hover .lang-arrow {
-    transform: rotate(180deg);
-}
+.language-selector:hover .lang-arrow { transform: rotate(180deg); }
 
 .dropdown-content {
     position: absolute;
     top: 100%;
     right: 0;
-    min-width: 140px;
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    margin-top: 5px;
+    min-width: 120px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    margin-top: 4px;
     overflow: hidden;
-    animation: slideDown 0.2s ease-out;
+    animation: ddSlide 0.12s ease-out;
 }
 
 .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
-    padding: 12px 16px;
+    padding: 8px 12px;
     text-align: left;
     background: none;
     border: none;
-    color: #888;
+    color: var(--text-2);
     cursor: pointer;
-    font-family: var(--font-main, sans-serif);
-    transition: all 0.2s;
-    border-bottom: 1px solid #222;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    transition: all 0.1s;
+    border-bottom: 1px solid var(--border-0);
 }
 
-.dropdown-item:last-child {
-    border-bottom: none;
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { background: var(--bg-3); color: var(--text-0); }
+.dropdown-item.active { color: var(--accent); }
+
+.flag-icon { font-size: 0.9rem; }
+
+@keyframes ddSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.dropdown-item:hover {
-    background-color: #2a2a2a;
-    color: #fff;
-}
-
-.dropdown-item.active {
-    color: var(--color-accent-green, #00ffaa);
-    background-color: rgba(0, 255, 170, 0.05);
-}
-
-.flag-icon {
-    font-size: 1.1rem;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (max-width: 768px) {
-    .language-selector {
-        top: 10px;
-        right: 10px;
-    }
-}
-
-/* Invisible bridge to prevent menu closing when moving from button to dropdown */
 .language-selector::after {
     content: '';
     position: absolute;
     top: 100%;
     right: 0;
-    width: 200px;
-    height: 20px;
+    width: 180px;
+    height: 10px;
     z-index: 10;
 }

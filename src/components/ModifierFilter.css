@@ -1,18 +1,7 @@
 .modifier-filter-container {
-    padding: 0 20px;
-    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.modifier-filter-title {
-    font-size: 0.9rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
+    align-items: flex-start;
 }
 
 .modifier-list {
@@ -20,68 +9,62 @@
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
-    max-width: 1000px;
 }
 
 .mod-btn {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid #333;
-    color: #888;
-    padding: 6px 12px;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(100, 100, 100, 0.5);
+    color: rgba(200, 200, 200, 0.9);
+    padding: 8px 16px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.75rem;
-    font-family: 'Outfit', sans-serif;
-    text-transform: capitalize;
-    transition: all 0.2s;
+    font-weight: 600;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.1s;
     user-select: none;
-
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
 }
 
-.mod-icon {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-}
+.mod-icon { width: 18px; height: 18px; object-fit: contain; }
 
 .mod-btn:hover {
-    border-color: #555;
-    color: #ccc;
-    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(140, 140, 140, 0.5);
+    color: #e0e0e0;
+    background: rgba(0, 0, 0, 0.65);
 }
 
 .mod-btn.active {
-    background: rgba(0, 255, 170, 0.15);
-    border-color: #00ffaa;
-    color: #00ffaa;
-    box-shadow: 0 0 10px rgba(0, 255, 170, 0.2);
+    background: var(--green-bg);
+    border-color: rgba(56,176,96,0.3);
+    color: var(--green);
 }
 
 .mod-btn.legendary {
-    border-color: #7a00cc;
-    color: #bfaee6;
+    color: #b080d8;
+    border-color: rgba(168, 88, 208, 0.35);
 }
 
 .mod-btn.legendary.active {
-    background: rgba(170, 0, 255, 0.2);
-    border-color: #bf00ff;
-    color: #e099ff;
-    box-shadow: 0 0 10px rgba(191, 0, 255, 0.3);
+    background: rgba(168, 88, 208, 0.18);
+    border-color: rgba(168, 88, 208, 0.6);
+    color: #d0a0f0;
+    box-shadow: 0 0 8px rgba(168, 88, 208, 0.25);
 }
 
 .reset-mods-btn {
-    margin-top: 15px;
-    background: transparent;
+    margin-top: 6px;
+    background: none;
     border: none;
-    color: #666;
-    font-size: 0.75rem;
+    color: var(--text-2);
+    font-size: 0.68rem;
     cursor: pointer;
     text-decoration: underline;
+    font-family: var(--font-body);
 }
 
-.reset-mods-btn:hover {
-    color: #888;
-}
+.reset-mods-btn:hover { color: var(--text-1); }

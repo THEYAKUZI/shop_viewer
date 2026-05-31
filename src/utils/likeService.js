@@ -4,7 +4,7 @@ import { ref, onValue, runTransaction, get } from 'firebase/database';
 const LOCAL_STORAGE_KEY = 'rampage_user_likes_v1';
 
 // Helpers for local tracking (did *I* like this?)
-const getLocalLikeStatus = (id) => {
+export const getLocalLikeStatus = (id) => {
     try {
         const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
         return !!stored[id];
