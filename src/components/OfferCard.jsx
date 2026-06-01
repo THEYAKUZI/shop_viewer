@@ -2,8 +2,7 @@ import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
 import StarRating from './StarRating';
 import { useLanguage } from '../contexts/LanguageContext';
-
-const imgCache = new Map();
+import { toPng } from 'html-to-image';
 
 const TYPE_MAP = {
     DAMAGE: 'Damage',
@@ -49,59 +48,21 @@ function OfferCard({ offer, likeCount = 0 }) {
         if (!cardRef.current || isCopying) return;
         setIsCopying(true);
 
-        const toDataURL = async (src) => {
-            if (imgCache.has(src)) return imgCache.get(src);
-
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.naturalWidth || 500;
-                    canvas.height = img.naturalHeight || 500;
-                    canvas.getContext('2d').drawImage(img, 0, 0);
-                    const dataUrl = canvas.toDataURL('image/png');
-                    imgCache.set(src, dataUrl);
-                    resolve(dataUrl);
-                };
-                img.onerror = () => resolve(null);
-                img.src = src;
-            });
-        };
-
-        const weaponImg = cardRef.current.querySelector('.weapon-img');
-
         try {
-            const [{ default: html2canvas }, base64Weapon] = await Promise.all([
-                import('html2canvas'),
-                weaponImg ? toDataURL(weaponImg.src) : Promise.resolve(null)
-            ]);
-
-            const captureCanvas = await html2canvas(cardRef.current, {
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#0d0f14',
-                scale: 2,
-                onclone: (clonedDoc) => {
-                    const clonedCard = clonedDoc.getElementById(cardId);
-                    if (!clonedCard || !base64Weapon) return;
-                    const clonedWeapon = clonedCard.querySelector('.weapon-img');
-                    if (clonedWeapon) clonedWeapon.src = base64Weapon;
-                }
+            const dataUrl = await toPng(cardRef.current, {
+                pixelRatio: 2,
+                backgroundColor: '#0a0a0a',
             });
 
-            captureCanvas.toBlob(async (blob) => {
-                try {
-                    if (navigator.clipboard?.write) {
-                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                        setTimeout(() => setIsCopying(false), 2000);
-                    } else {
-                        setIsCopying(false);
-                    }
-                } catch {
-                    setIsCopying(false);
-                }
-            });
+            const res = await fetch(dataUrl);
+            const blob = await res.blob();
+
+            if (navigator.clipboard?.write) {
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                setTimeout(() => setIsCopying(false), 2000);
+            } else {
+                setIsCopying(false);
+            }
         } catch {
             setIsCopying(false);
         }
