@@ -642,9 +642,10 @@ body {
     gap: 12px;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1200px) {
     .item-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
 
 .item-card {
     background: var(--bg-1);
