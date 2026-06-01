@@ -643,7 +643,7 @@ body {
 }
 
 @media (max-width: 980px) {
-    .item-grid { grid-template-columns: repeat(3, 1fr); }
+    .item-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .item-card {
