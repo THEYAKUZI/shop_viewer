@@ -19,12 +19,13 @@
 :root {
     color-scheme: dark;
 
-    --bg: #1e0908;          /* the game's own backdrop maroon */
-    --bg-deep: #130706;     /* lower page */
-    --panel: #23110e;
-    --panel-2: #2d1612;
-    --panel-3: #3a1f19;
-    --brush: #3d1913;       /* painted swash behind section titles */
+    --bg: #0c0403;          /* near-black with a hint of the game's maroon */
+    --bg-rgb: 12 4 3;       /* same colour, for translucent overlays */
+    --bg-deep: #070202;     /* lower page */
+    --panel: #160a08;
+    --panel-2: #1e0e0c;
+    --panel-3: #2a1511;
+    --brush: #2b110d;       /* painted swash behind section titles */
     --line: rgba(255, 196, 160, 0.10);
     --line-2: rgba(255, 196, 160, 0.18);
 
@@ -117,8 +118,8 @@ a { color: inherit; }
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 70% 90% at 50% 35%, rgba(30, 9, 8, 0) 40%, rgba(30, 9, 8, 0.75) 100%),
-        linear-gradient(180deg, rgba(30, 9, 8, 0.25) 0%, rgba(30, 9, 8, 0) 30%, rgba(30, 9, 8, 0.6) 72%, var(--bg) 100%);
+        radial-gradient(ellipse 70% 90% at 50% 35%, rgb(var(--bg-rgb) / 0) 40%, rgb(var(--bg-rgb) / 0.75) 100%),
+        linear-gradient(180deg, rgb(var(--bg-rgb) / 0.25) 0%, rgb(var(--bg-rgb) / 0) 30%, rgb(var(--bg-rgb) / 0.6) 72%, var(--bg) 100%);
 }
 
 .banner-embers {
@@ -175,7 +176,7 @@ a { color: inherit; }
     padding: 3px;
     border: 1px solid var(--line-2);
     border-radius: var(--radius-sm);
-    background: rgba(19, 7, 6, 0.6);
+    background: rgb(var(--bg-rgb) / 0.6);
 }
 
 .lang-toggle button {
@@ -200,7 +201,7 @@ a { color: inherit; }
     padding: 0 14px;
     border: 1px solid var(--line-2);
     border-radius: var(--radius-sm);
-    background: rgba(19, 7, 6, 0.6);
+    background: rgb(var(--bg-rgb) / 0.6);
     color: var(--text);
     font-size: 13px;
     font-weight: 600;
@@ -223,7 +224,7 @@ a { color: inherit; }
     padding: 14px;
     border: 1px solid var(--line-2);
     border-radius: 14px;
-    background: linear-gradient(180deg, rgba(50, 23, 19, 0.94), rgba(35, 17, 14, 0.96));
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
     box-shadow: inset 0 1px 0 rgba(255, 220, 190, 0.06), 0 18px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -1084,7 +1085,7 @@ a { color: inherit; }
     gap: 24px;
     min-height: 100vh;
     padding: 24px;
-    background: radial-gradient(ellipse at 50% 40%, #3a120d 0%, var(--bg) 60%);
+    background: radial-gradient(ellipse at 50% 40%, var(--panel-3) 0%, var(--bg) 60%);
 }
 
 .status-logo { width: 260px; max-width: 70vw; height: auto; }
