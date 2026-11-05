@@ -55,7 +55,7 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
                         aria-label={`${star} – ${t(LABELS[star])}`}
                         tabIndex={star === focusStar ? 0 : -1}
                         className="rating-star"
-                        style={{ '--fill': `${Math.max(0, Math.min(1, shown - (star - 1))) * 100}%` }}
+                        style={{ '--fill': Math.max(0, Math.min(1, shown - (star - 1))) }}
                         onMouseEnter={() => setHover(star)}
                         onClick={(e) => { e.stopPropagation(); handleRate(star); }}
                     >★</button>

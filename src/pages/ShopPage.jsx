@@ -142,6 +142,12 @@ function ShopPage() {
     const clearFilters = () => { setSearchInput(''); updateParams({ hero: '', mods: '', q: '' }); };
 
     useEffect(() => {
+        const onHashChange = () => setSearchInput(new URLSearchParams(window.location.hash.split('?')[1] || '').get('q') || '');
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, []);
+
+    useEffect(() => {
         const id = setTimeout(() => {
             const current = new URLSearchParams(window.location.hash.split('?')[1] || '').get('q') || '';
             if (current !== searchInput.trim()) updateParams({ q: searchInput.trim() });
@@ -167,8 +173,17 @@ function ShopPage() {
         return () => { stopLikes(); stopRatings(); };
     }, [applyShopData]);
 
-    // Re-split the sections when the current rotation ends.
-    const handleShopReset = useCallback(() => { if (rawJson) applyShopData(rawJson); }, [rawJson, applyShopData]);
+    // Re-split the sections at the next rotation boundary (current offers ending or the next ones starting).
+    useEffect(() => {
+        if (!rawJson) return;
+        const times = [
+            ...data.available.map(o => Date.parse(o.endDate)),
+            ...data.upcoming.map(o => Date.parse(o.startDate)),
+        ].filter(Number.isFinite);
+        if (times.length === 0) return;
+        const id = setTimeout(() => applyShopData(rawJson), Math.max(0, Math.min(...times) - Date.now()) + 250);
+        return () => clearTimeout(id);
+    }, [rawJson, data, applyShopData]);
 
     // Keep the selected hero visible in the scrollable hero row; fade the edge only when it overflows.
     useEffect(() => {
@@ -264,7 +279,7 @@ function ShopPage() {
 
     if (loading) {
         return (
-            <div className="status-screen">
+            <div className="status-screen" role="status" aria-label={t('Loading')}>
                 <img src="brand/logo.webp" alt="Rampage Armory" className="status-logo" />
                 <div className="status-bar" />
             </div>
@@ -275,7 +290,8 @@ function ShopPage() {
         return (
             <div className="status-screen">
                 <img src="brand/logo.webp" alt="Rampage Armory" className="status-logo" />
-                <p className="status-error">{t('Could not load the shop data.')} {error}</p>
+                <p className="status-error">{t("Couldn't load the shop data. Check your connection and try again.")}</p>
+                <button type="button" className="done-btn" onClick={() => window.location.reload()}>{t('Try again')}</button>
             </div>
         );
     }
@@ -285,9 +301,13 @@ function ShopPage() {
         : null;
     const nextRotation = data.upcoming[0]?.startDate;
     const filtersActive = !!selectedHero || selectedModifiers.length > 0 || searchQuery.trim() !== '';
+    const noData = data.available.length + data.upcoming.length + data.comingSoon.length === 0;
     const futureMatches = [...filtered.upcoming, ...filtered.comingSoon];
-    const nothingMatches = filtersActive && filtered.available.length + futureMatches.length === 0;
+    const nothingMatches = filtersActive && !noData && filtered.available.length + futureMatches.length === 0;
     const exportedAt = rawJson?.Exported ? new Date(rawJson.Exported * 1000) : null;
+    const lastEnd = noData && rawJson?.Offers
+        ? Math.max(0, ...rawJson.Offers.filter(o => o.Tab === 'WEAPON').map(o => Date.parse(o.EndDate)).filter(Number.isFinite))
+        : 0;
 
     // With filters on, empty sections are hidden and replaced by one line that says when the next match arrives.
     let notice = null;
@@ -313,7 +333,7 @@ function ShopPage() {
         searchQuery.trim() && `"${searchQuery.trim()}"`,
     ].filter(Boolean).join(' · ');
 
-    const card = (offer, arrival) => (
+    const card = (offer, arrival, headingLevel = 3) => (
         <OfferCard
             key={offer.Id}
             offer={offer}
@@ -322,6 +342,7 @@ function ShopPage() {
             heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]}
             arrival={arrival}
             compact={compact}
+            headingLevel={headingLevel}
         />
     );
 
@@ -334,20 +355,24 @@ function ShopPage() {
 
     return (
         <div className="app">
+            {/* Title-screen header: the game's own battle art, logo centred, fading into the page. */}
             <header className="banner">
                 <div className="banner-art" aria-hidden="true" />
-                <div className="container banner-inner">
-                    <h1 className="brand"><img src="brand/logo.webp" alt="Rampage Armory" width="240" height="116" /></h1>
-                    <p className="banner-tagline">{t('Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.')}</p>
+                <div className="banner-embers" aria-hidden="true" />
+                <div className="container banner-top">
                     <div className="banner-actions">
                         <LanguageSelector />
                         <DiscordLink t={t} />
                     </div>
                 </div>
+                <div className="container banner-inner">
+                    <h1 className="brand"><img src="brand/logo.webp" alt="Rampage Armory" width="300" height="145" /></h1>
+                    <p className="banner-tagline">{t('Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.')}</p>
+                </div>
             </header>
 
             <main className="container">
-                <div className="filters">
+                {!noData && <div className="filters">
                     <div className="hero-tabs" ref={heroTabsRef} role="group" aria-label={t('Filter by hero')}>
                         <button type="button" className={`hero-tab hero-tab-all ${selectedHero === null ? 'active' : ''}`} onClick={() => selectHero(null)} aria-pressed={selectedHero === null}>
                             {t('All')}
@@ -400,15 +425,13 @@ function ShopPage() {
                             title={t('Compact cards: hide stats and modifier descriptions')}
                         >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                {compact
-                                    ? <><rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" /></>
-                                    : <path d="M4 6h16M4 12h16M4 18h16" />}
+                                <rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" />
                             </svg>
                             <span className="view-label">{t('Compact')}</span>
                         </button>
                     </div>
                     <SelectedModifiers options={modifierOptions} selected={selectedModifiers} onChange={setModifiers} />
-                </div>
+                </div>}
 
                 {notice}
 
@@ -422,7 +445,7 @@ function ShopPage() {
                             <>
                                 <img src="brand/clock.png" alt="" className="clock-icon" />
                                 <span className="meta-label">{t('Refreshes in')}</span>
-                                <ShopTimer targetTime={nextResetTime} onExpire={handleShopReset} />
+                                <ShopTimer targetTime={nextResetTime} />
                                 <span className="meta-sub">{fmtDay(nextResetTime)}, {fmtTime(nextResetTime)}</span>
                             </>
                         )}
@@ -465,7 +488,7 @@ function ShopPage() {
                                 {shownDays.map(([date, offers]) => (
                                     <div key={date} className="day-group">
                                         <h3 className="day-head">{fmtDay(date)} <span>· {relDay(date)}</span></h3>
-                                        <div className="grid">{offers.map(offer => card(offer))}</div>
+                                        <div className="grid">{offers.map(offer => card(offer, undefined, 4))}</div>
                                     </div>
                                 ))}
                                 {filtered.comingSoonDays.length > shownDays.length && (
@@ -478,8 +501,12 @@ function ShopPage() {
                     </Section>
                 )}
 
-                {!filtersActive && data.available.length + data.upcoming.length + data.comingSoon.length === 0 && (
-                    <div className="empty"><p>{t('No weapons currently available.')}</p></div>
+                {noData && (
+                    <div className="empty">
+                        <p>{lastEnd
+                            ? t("The shop data on this site ends on {date}. New rotations will show up once it's updated from the game files.").replace('{date}', new Date(lastEnd).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }))
+                            : t('No weapons currently available.')}</p>
+                    </div>
                 )}
                 {nothingMatches && (
                     <div className="empty">

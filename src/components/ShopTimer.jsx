@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-// Counts down to targetTime (ms since epoch) and calls onExpire once when it hits zero.
-const ShopTimer = ({ targetTime, onExpire }) => {
+// Counts down to targetTime (ms since epoch). Display only: the page itself
+// re-splits the sections when a rotation ends.
+const ShopTimer = ({ targetTime }) => {
     const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
@@ -10,11 +11,6 @@ const ShopTimer = ({ targetTime, onExpire }) => {
     }, []);
 
     const diff = Math.max(0, targetTime - now);
-    const expired = diff === 0;
-
-    useEffect(() => {
-        if (expired && onExpire) onExpire();
-    }, [expired, onExpire]);
 
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff / 60000) % 60);

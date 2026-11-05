@@ -231,6 +231,10 @@ export const translations = {
         "Fires three extra projectles when charged!": "Dispara três projéteis extras quando carregado!",
 
         // Redesign UI
+        "Loading": "Carregando",
+        "Couldn't load the shop data. Check your connection and try again.": "Não foi possível carregar os dados da loja. Verifique sua conexão e tente de novo.",
+        "Try again": "Tentar de novo",
+        "The shop data on this site ends on {date}. New rotations will show up once it's updated from the game files.": "Os dados da loja neste site vão até {date}. As novas rotações aparecem aqui assim que o site for atualizado com os arquivos do jogo.",
         "you": "você",
         "Lv": "Nv",
         "Not in the shop today.": "Não está na loja hoje.",
@@ -293,7 +297,7 @@ export const translations = {
         "Remove": "Remover",
         "Clear all": "Limpar tudo",
         "Could not load the shop data.": "Não foi possível carregar os dados da loja.",
-        "Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.": "Todas as armas lendárias da loja do Dungeon Rampage: o que está à venda hoje e o que chega a seguir.",
+        "Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.": "Todas as lendárias da loja do Dungeon Rampage: o que está à venda hoje e o que vem por aí.",
         "Shop refreshes in": "A loja renova em",
         "No rotation is live right now.": "Nenhuma rotação ativa no momento.",
         "Live now": "À venda agora",

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 const DATA_FILE = new URL('./public/DB_GameMaster.json', import.meta.url)
 
@@ -17,7 +18,7 @@ function trimShopData() {
   return {
     name: 'trim-shop-data',
     apply: 'build',
-    configResolved(config) { outDir = config.build.outDir },
+    configResolved(config) { outDir = resolve(config.root, config.build.outDir) },
     closeBundle() {
       const src = JSON.parse(readFileSync(DATA_FILE, 'utf8'))
       const now = Date.now()

@@ -23,7 +23,7 @@ const downloadBlob = (blob, name) => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact = false }) {
+function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact = false, headingLevel = 3 }) {
     const cardRef = useRef(null);
     const { t, locale } = useLanguage();
     const [copyState, setCopyState] = useState('idle');
@@ -46,16 +46,29 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact
         ? `${t('In shop until')} ${utc(offer.endDate)}`
         : `${t('Arrives')} ${utc(offer.startDate)}`;
 
-    const handleCopy = async () => {
+    // Renders an off-screen copy of the card (with the caption shown) so the real grid never shifts.
+    const renderImage = () => {
         const card = cardRef.current;
-        if (!card || copyState === 'busy') return;
-        setCopyState('busy');
-        card.classList.add('capturing');
-        const render = () => toPng(card, {
+        const ghost = card.cloneNode(true);
+        ghost.removeAttribute('id');
+        ghost.classList.add('capturing');
+        Object.assign(ghost.style, { position: 'fixed', left: '-10000px', top: '0', width: `${card.offsetWidth}px` });
+        document.body.appendChild(ghost);
+        return toPng(ghost, {
             pixelRatio: 2,
-            backgroundColor: '#141210',
+            backgroundColor: '#22100d',
             filter: (node) => !node.classList?.contains('no-capture'),
-        }).then(url => fetch(url)).then(res => res.blob());
+            style: { position: 'static', left: 'auto', top: 'auto' },
+        })
+            .then(url => fetch(url))
+            .then(res => res.blob())
+            .finally(() => ghost.remove());
+    };
+
+    const handleCopy = async () => {
+        if (!cardRef.current || copyState === 'busy') return;
+        setCopyState('busy');
+        const render = renderImage;
 
         let result = 'error';
         try {
@@ -68,7 +81,6 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact
                 result = 'saved';
             } catch { /* result stays 'error' */ }
         }
-        card.classList.remove('capturing');
         setCopyState(result);
         setTimeout(() => setCopyState('idle'), 1800);
     };
@@ -95,11 +107,11 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact
                     />
                 </div>
                 <div className="card-title">
-                    <h3>{offer.name}</h3>
+                    {headingLevel === 4 ? <h4>{offer.name}</h4> : <h3>{offer.name}</h3>}
                     {subtitle && <p className="card-subtitle">{subtitle}</p>}
                     <p className="card-type">
                         {heroes.map(h => (
-                            <img key={h.id} src={`icons/${h.iconName}.png`} alt="" title={h.name} className="card-hero" />
+                            <img key={h.id} src={`icons/${h.iconName}.png`} alt={heroes.length > 1 ? h.name : ''} title={h.name} className="card-hero" />
                         ))}
                         {/* One hero: show the name. Shared weapons: the avatars say who, the text names the weapon. */}
                         <span>{heroes.length === 1 && `${heroes[0].name} · `}{weapon.Name}</span>
@@ -165,7 +177,7 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact
                     </button>
                 </span>
             </footer>
-            <p className="capture-caption">Rampage Armory · {caption}</p>
+            <p className="capture-caption"><span className="caption-brand">Rampage Armory</span><span>{caption}</span></p>
         </article>
     );
 }

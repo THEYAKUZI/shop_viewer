@@ -53,7 +53,7 @@ export function ModifierPicker({ options, selected, onChange }) {
                 aria-expanded={open}
             >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4" /></svg>
-                {t('Modifiers')}
+                <span className="control-label">{t('Modifiers')}</span>
                 {selected.length > 0 && <span className="count-badge">{selected.length}</span>}
                 <svg className="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </button>
