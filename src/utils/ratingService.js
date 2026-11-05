@@ -13,7 +13,7 @@ const readLocalRatings = () => {
     }
 };
 
-const getLocalRating = (id) => readLocalRatings()[id];
+export const getLocalRating = (id) => readLocalRatings()[id];
 
 const setLocalRating = (id, rating) => {
     try {
@@ -26,21 +26,20 @@ const setLocalRating = (id, rating) => {
     }
 };
 
-export const subscribeToRatings = (id, onUpdate) => {
+// Streams every offer's rating totals as { [offerId]: { average, count } }.
+export const subscribeToAllRatings = (onUpdate) => {
     if (!db) {
-        onUpdate({ average: 0, count: 0, myRating: getLocalRating(id) });
+        onUpdate({});
         return () => { };
     }
-    return onValue(ref(db, `ratings/${id}`), (snapshot) => {
-        const val = snapshot.val() || {};
-        const sum = val.sum || 0;
-        const count = val.count || 0;
-        const average = count > 0 ? sum / count : 0;
-        onUpdate({
-            average: parseFloat(average.toFixed(1)),
-            count,
-            myRating: getLocalRating(id)
+    return onValue(ref(db, 'ratings'), (snapshot) => {
+        const all = {};
+        Object.entries(snapshot.val() || {}).forEach(([id, val]) => {
+            const count = (val && val.count) || 0;
+            const sum = (val && val.sum) || 0;
+            all[id] = { count, average: count > 0 ? Math.round((sum / count) * 10) / 10 : 0 };
         });
+        onUpdate(all);
     });
 };
 

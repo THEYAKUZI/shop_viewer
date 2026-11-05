@@ -22,23 +22,10 @@ const ShopTimer = ({ targetTime, onExpire }) => {
     const pad = (n) => String(n).padStart(2, '0');
 
     return (
-        <div className="shop-timer-display">
-            <div className="timer-digits">
-                <div className="timer-block">
-                    <span className="timer-num">{pad(h)}</span>
-                    <span className="timer-unit">HRS</span>
-                </div>
-                <span className="timer-colon">:</span>
-                <div className="timer-block">
-                    <span className="timer-num">{pad(m)}</span>
-                    <span className="timer-unit">MINS</span>
-                </div>
-                <span className="timer-colon">:</span>
-                <div className="timer-block">
-                    <span className="timer-num">{pad(s)}</span>
-                    <span className="timer-unit">SECS</span>
-                </div>
-            </div>
+        <div className="timer" role="timer" aria-label={`${h}h ${m}m ${s}s`}>
+            <span className="timer-seg"><span className="timer-num">{pad(h)}</span><span className="timer-unit">h</span></span>
+            <span className="timer-seg"><span className="timer-num">{pad(m)}</span><span className="timer-unit">m</span></span>
+            <span className="timer-seg"><span className="timer-num">{pad(s)}</span><span className="timer-unit">s</span></span>
         </div>
     );
 };

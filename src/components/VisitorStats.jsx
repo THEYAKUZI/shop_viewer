@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { initVisitorTracking } from '../utils/visitorService';
-import './VisitorStats.css';
+import { useLanguage } from '../contexts/useLanguage';
 
+// Total visit count. Also records this visit (once per browser per day).
 const VisitorStats = () => {
-    const [total, setTotal] = useState(0);
+    const { locale } = useLanguage();
+    const [total, setTotal] = useState(null);
 
     useEffect(() => initVisitorTracking(setTotal), []);
 
-    return (
-        <div className="visitor-stats">
-            <div className="stat-item">
-                <span className="stat-val">{total.toLocaleString()}</span>
-                <span className="stat-label">VISITS</span>
-            </div>
-        </div>
-    );
+    return <>{total === null ? '-' : total.toLocaleString(locale)}</>;
 };
 
 export default VisitorStats;

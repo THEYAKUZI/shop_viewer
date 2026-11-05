@@ -23,7 +23,8 @@ export const initVisitorTracking = (onTotal) => {
     }
 
     const visitsRef = ref(db, 'stats/totalVisits');
-    if (shouldCountVisit()) {
+    // Local development doesn't count as a visit.
+    if (!import.meta.env.DEV && shouldCountVisit()) {
         set(visitsRef, increment(1)).catch(err => console.error("Visit count failed", err));
     }
 
