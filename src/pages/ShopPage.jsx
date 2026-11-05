@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import OfferCard from '../components/OfferCard';
 import ShopTimer from '../components/ShopTimer';
 import { ModifierPicker, SelectedModifiers } from '../components/ModifierFilter';
@@ -10,11 +12,13 @@ import VisitorStats from '../components/VisitorStats';
 import LanguageSelector from '../components/LanguageSelector';
 import { useLanguage } from '../contexts/useLanguage';
 
-// One rotation is 16 items, so pages line up with whole days in "Coming soon".
-const PAGE_SIZE = 16;
 const DISCORD_URL = 'https://discord.gg/Ww9HX27JmU';
+const INITIAL_DAYS = 3;      // "Coming soon" days shown before "Show next 7 days"
+const DAYS_STEP = 7;
+const FILTERED_PAGE = 24;    // filtered "Coming soon" results per "Show more"
 
 const HERO_ORDER = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Battle Chef': 5, 'Vampire Hunter': 6, 'Ghost Samurai': 7, 'Pyromancer': 8, 'Dragon Knight': 9 };
+const SORT_MODES = ['popular', 'rating', 'price-low', 'price-high'];
 
 const offerPrice = (offer) => offer.items[0]?.price ?? 0;
 
@@ -68,13 +72,19 @@ function groupByDate(offers) {
     return [...groups.entries()];
 }
 
-function Section({ title, count, meta, note, children, live, locale }) {
+// Whole calendar days from today (local time) until the given date.
+const daysFromToday = (iso) => {
+    const d = new Date(iso), now = new Date();
+    return Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+};
+
+function Section({ id, title, count, meta, note, children, live, locale }) {
     return (
-        <section className="shop-section">
+        <section className="shop-section" id={id}>
             <div className="section-head">
                 <h2>{live && <span className="live-dot" aria-hidden="true" />}{title}</h2>
                 {count !== undefined && <span className="section-count">{count.toLocaleString(locale)}</span>}
-                {meta && <span className="section-meta">{meta}</span>}
+                {meta && <div className="section-meta">{meta}</div>}
             </div>
             {note && <p className="section-note">{note}</p>}
             {children}
@@ -82,22 +92,50 @@ function Section({ title, count, meta, note, children, live, locale }) {
     );
 }
 
+function DiscordLink({ t }) {
+    return (
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="discord-btn" aria-label={t('Join the Discord')}>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.1.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" /></svg>
+            <span className="discord-label">Discord</span>
+        </a>
+    );
+}
+
 function ShopPage() {
     const { t, locale } = useLanguage();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [data, setData] = useState({ available: [], upcoming: [], comingSoon: [] });
     const [heroes, setHeroes] = useState([]);
-    const [selectedHero, setSelectedHero] = useState(null);
     const [modifierOptions, setModifierOptions] = useState([]);
-    const [selectedModifiers, setSelectedModifiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [rawJson, setRawJson] = useState(null);
     const [allLikes, setAllLikes] = useState({});
     const [allRatings, setAllRatings] = useState({});
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortMode, setSortMode] = useState('popular');
-    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-    const loadMoreRef = useRef(null);
+    const [visibleDays, setVisibleDays] = useState(INITIAL_DAYS);
+    const [visibleFiltered, setVisibleFiltered] = useState(FILTERED_PAGE);
+    const heroTabsRef = useRef(null);
+
+    // Filters live in the URL so a shared link opens the same view.
+    const heroParam = searchParams.get('hero') || '';
+    const selectedModifiers = useMemo(() => (searchParams.get('mods') || '').split(',').filter(Boolean), [searchParams]);
+    const searchQuery = searchParams.get('q') || '';
+    const sortMode = SORT_MODES.includes(searchParams.get('sort')) ? searchParams.get('sort') : 'popular';
+    const selectedHero = heroes.find(h => h.constant.toLowerCase() === heroParam) || null;
+
+    const updateParams = (changes) => {
+        // Start from the live URL (HashRouter keeps the query after '#/?') so quick successive clicks don't drop each other.
+        const next = new URLSearchParams(window.location.hash.split('?')[1] || '');
+        Object.entries(changes).forEach(([key, value]) => {
+            if (value) next.set(key, value); else next.delete(key);
+        });
+        setSearchParams(next, { replace: true });
+        setVisibleDays(INITIAL_DAYS);
+        setVisibleFiltered(FILTERED_PAGE);
+    };
+    const selectHero = (hero) => updateParams({ hero: hero ? hero.constant.toLowerCase() : '' });
+    const setModifiers = (mods) => updateParams({ mods: mods.join(',') });
+    const clearFilters = () => updateParams({ hero: '', mods: '', q: '' });
 
     const applyShopData = useCallback((json) => {
         const state = buildShopState(json);
@@ -120,11 +158,20 @@ function ShopPage() {
     // Re-split the sections when the current rotation ends.
     const handleShopReset = useCallback(() => { if (rawJson) applyShopData(rawJson); }, [rawJson, applyShopData]);
 
-    // Filter and sort changes start the list from the top again.
-    const resetPaging = () => setVisibleCount(PAGE_SIZE);
-    const selectHero = (hero) => { setSelectedHero(hero); resetPaging(); };
-    const setModifiers = (mods) => { setSelectedModifiers(mods); resetPaging(); };
-    const clearFilters = () => { setSelectedHero(null); setSelectedModifiers([]); setSearchQuery(''); resetPaging(); };
+    // Keep the selected hero visible in the scrollable hero row; fade the edge only when it overflows.
+    useEffect(() => {
+        const row = heroTabsRef.current;
+        if (!row) return;
+        const update = () => {
+            row.classList.toggle('fade-end', row.scrollWidth - row.scrollLeft - row.clientWidth > 2);
+        };
+        update();
+        row.querySelector('.hero-tab.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+        row.addEventListener('scroll', update, { passive: true });
+        const ro = new ResizeObserver(update);
+        ro.observe(row);
+        return () => { row.removeEventListener('scroll', update); ro.disconnect(); };
+    }, [heroes, heroParam, locale]);
 
     // Weapon type -> heroes that can equip it, for the hero line on each card.
     const heroesByType = useMemo(() => {
@@ -154,33 +201,34 @@ function ShopPage() {
         };
         const sortFn = (SORTERS[sortMode] || SORTERS.popular)({ likes: allLikes, ratings: allRatings });
         // Coming soon stays in date order; sorting applies within each day.
-        const comingSoon = groupByDate(data.comingSoon.filter(matches)).flatMap(([, offers]) => offers.sort(sortFn));
+        const comingSoonDays = groupByDate(data.comingSoon.filter(matches)).map(([date, offers]) => [date, offers.sort(sortFn)]);
         return {
             available: data.available.filter(matches).sort(sortFn),
             upcoming: data.upcoming.filter(matches).sort(sortFn),
-            comingSoon,
+            comingSoonDays,
+            comingSoon: comingSoonDays.flatMap(([, offers]) => offers),
         };
     }, [allLikes, allRatings, data, searchQuery, selectedHero, selectedModifiers, sortMode]);
 
-    // Pages fill the sections in order: live, next rotation, then coming soon.
-    const showAvailable = filtered.available.slice(0, visibleCount);
-    const showUpcoming = filtered.upcoming.slice(0, Math.max(0, visibleCount - showAvailable.length));
-    const showComingSoon = filtered.comingSoon.slice(0, Math.max(0, visibleCount - showAvailable.length - showUpcoming.length));
-    const total = filtered.available.length + filtered.upcoming.length + filtered.comingSoon.length;
-    const hasMore = visibleCount < total;
-
-    useEffect(() => {
-        const el = loadMoreRef.current;
+    // "Next match" links reveal the card first if it is beyond what is shown, then scroll to it.
+    const jumpTo = (offer) => {
+        const index = filtered.comingSoon.indexOf(offer);
+        if (index >= visibleFiltered) flushSync(() => setVisibleFiltered(index + 1));
+        const el = document.getElementById(`offer-${offer.Id}`);
         if (!el) return;
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) setVisibleCount(prev => prev + PAGE_SIZE);
-        }, { rootMargin: '400px' });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [hasMore, visibleCount]); // re-observing after each load keeps loading while the marker stays on screen
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 1600);
+    };
 
     const fmtDay = (iso) => new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
     const fmtTime = (iso) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const relDay = (iso) => {
+        const n = daysFromToday(iso);
+        if (n <= 0) return t('today');
+        if (n === 1) return t('tomorrow');
+        return t('in {n} days').replace('{n}', n);
+    };
 
     if (loading) {
         return (
@@ -205,52 +253,53 @@ function ShopPage() {
         : null;
     const nextRotation = data.upcoming[0]?.startDate;
     const filtersActive = !!selectedHero || selectedModifiers.length > 0 || searchQuery.trim() !== '';
+    const futureMatches = [...filtered.upcoming, ...filtered.comingSoon];
+    const nextMatch = futureMatches[0];
+
+    const card = (offer, arrival) => (
+        <OfferCard
+            key={offer.Id}
+            offer={offer}
+            likeCount={allLikes[offer.Id] || 0}
+            rating={allRatings[offer.Id]}
+            heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]}
+            arrival={arrival}
+        />
+    );
+
+    const emptyLine = (text, target) => (
+        <p className="section-empty">
+            {text}
+            {target && (
+                <button type="button" className="link-btn" onClick={() => jumpTo(target)}>
+                    {t('Next match')}: {target.name} · {fmtDay(target.startDate)} ({relDay(target.startDate)})
+                </button>
+            )}
+        </p>
+    );
+
+    const shownDays = filtered.comingSoonDays.slice(0, visibleDays);
+    const shownFiltered = filtered.comingSoon.slice(0, visibleFiltered);
 
     return (
         <div className="app">
             <header className="banner">
                 <div className="banner-art" aria-hidden="true" />
                 <div className="container banner-inner">
-                    <div className="banner-intro">
-                        <h1><img src="brand/logo.webp" alt="Rampage Armory" width="420" height="203" /></h1>
-                        <p>{t('Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.')}</p>
-                    </div>
-                    <div className="banner-side">
-                        <div className="banner-actions">
-                            <LanguageSelector />
-                            <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="discord-btn">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.1.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" /></svg>
-                                {t('Discord')}
-                            </a>
-                        </div>
-                        <div className="refresh-panel">
-                            {nextResetTime ? (
-                                <>
-                                    <span className="panel-label">{t('Shop refreshes in')}</span>
-                                    <ShopTimer targetTime={nextResetTime} onExpire={handleShopReset} />
-                                    <span className="panel-sub">{fmtDay(nextResetTime)} · {fmtTime(nextResetTime)}</span>
-                                </>
-                            ) : (
-                                <span className="panel-label">{t('No rotation is live right now.')}</span>
-                            )}
-                            <dl className="panel-stats">
-                                <div><dt>{t('Live now')}</dt><dd>{data.available.length}</dd></div>
-                                <div><dt>{t('Upcoming')}</dt><dd>{(data.upcoming.length + data.comingSoon.length).toLocaleString(locale)}</dd></div>
-                                <div><dt>{t('Visits')}</dt><dd><VisitorStats /></dd></div>
-                            </dl>
-                        </div>
+                    <h1 className="brand"><img src="brand/logo.webp" alt="Rampage Armory" width="240" height="116" /></h1>
+                    <p className="banner-tagline">{t('Every legendary in the Dungeon Rampage weapon shop: what is live today and what arrives next.')}</p>
+                    <div className="banner-actions">
+                        <LanguageSelector />
+                        <DiscordLink t={t} />
                     </div>
                 </div>
             </header>
 
             <main className="container">
                 <div className="filters">
-                    <div className="hero-tabs" role="group" aria-label={t('Filter by hero')}>
-                        <button type="button" className={`hero-tab ${selectedHero === null ? 'active' : ''}`} onClick={() => selectHero(null)} aria-pressed={selectedHero === null}>
-                            <span className="hero-tab-all" aria-hidden="true">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" /></svg>
-                            </span>
-                            {t('All heroes')}
+                    <div className="hero-tabs" ref={heroTabsRef} role="group" aria-label={t('Filter by hero')}>
+                        <button type="button" className={`hero-tab hero-tab-all ${selectedHero === null ? 'active' : ''}`} onClick={() => selectHero(null)} aria-pressed={selectedHero === null}>
+                            {t('All')}
                         </button>
                         {heroes.map(hero => (
                             <button
@@ -273,14 +322,14 @@ function ShopPage() {
                                 type="search"
                                 placeholder={t('Search weapons...')}
                                 value={searchQuery}
-                                onChange={(e) => { setSearchQuery(e.target.value); resetPaging(); }}
+                                onChange={(e) => updateParams({ q: e.target.value })}
                                 aria-label={t('Search weapons...')}
                             />
                         </label>
                         <ModifierPicker options={modifierOptions} selected={selectedModifiers} onChange={setModifiers} />
                         <label className="control select">
                             <span className="select-label">{t('Sort')}</span>
-                            <select value={sortMode} onChange={(e) => { setSortMode(e.target.value); resetPaging(); }}>
+                            <select value={sortMode} onChange={(e) => updateParams({ sort: e.target.value === 'popular' ? '' : e.target.value })}>
                                 <option value="popular">{t('Most liked')}</option>
                                 <option value="rating">{t('Top rated')}</option>
                                 <option value="price-low">{t('Price: low to high')}</option>
@@ -291,78 +340,95 @@ function ShopPage() {
                     <SelectedModifiers options={modifierOptions} selected={selectedModifiers} onChange={setModifiers} />
                 </div>
 
-                {showAvailable.length > 0 && (
+                {(data.available.length > 0) && (filtered.available.length > 0 || filtersActive) && (
                     <Section
                         live
                         locale={locale}
                         title={t('Live now')}
                         count={filtered.available.length}
-                        meta={nextResetTime && `${t('Ends')} ${fmtDay(nextResetTime)}, ${fmtTime(nextResetTime)}`}
+                        meta={nextResetTime && (
+                            <>
+                                <img src="brand/clock.png" alt="" className="clock-icon" />
+                                <span className="meta-label">{t('Refreshes in')}</span>
+                                <ShopTimer targetTime={nextResetTime} onExpire={handleShopReset} />
+                                <span className="meta-sub">{fmtDay(nextResetTime)}, {fmtTime(nextResetTime)}</span>
+                            </>
+                        )}
                     >
-                        <div className="grid">
-                            {showAvailable.map(offer => (
-                                <OfferCard key={offer.Id} offer={offer} likeCount={allLikes[offer.Id] || 0} rating={allRatings[offer.Id]} heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]} />
-                            ))}
-                        </div>
+                        {filtered.available.length > 0
+                            ? <div className="grid">{filtered.available.map(offer => card(offer))}</div>
+                            : emptyLine(t('No live weapons match.'), nextMatch)}
                     </Section>
                 )}
 
-                {showUpcoming.length > 0 && (
+                {data.upcoming.length > 0 && (filtered.upcoming.length > 0 || filtersActive) && (
                     <Section
                         locale={locale}
                         title={t('Next rotation')}
                         count={filtered.upcoming.length}
-                        meta={nextRotation && `${fmtDay(nextRotation)}, ${fmtTime(nextRotation)}`}
+                        meta={nextRotation && <span className="meta-sub">{t('Starts')} {fmtDay(nextRotation)}, {fmtTime(nextRotation)} · {relDay(nextRotation)}</span>}
                     >
-                        <div className="grid">
-                            {showUpcoming.map(offer => (
-                                <OfferCard key={offer.Id} offer={offer} likeCount={allLikes[offer.Id] || 0} rating={allRatings[offer.Id]} heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]} arrival={offer.startDate} />
-                            ))}
-                        </div>
+                        {filtered.upcoming.length > 0
+                            ? <div className="grid">{filtered.upcoming.map(offer => card(offer))}</div>
+                            : emptyLine(t('None in the next rotation.'), filtered.comingSoon[0])}
                     </Section>
                 )}
 
-                {showComingSoon.length > 0 && (
+                {data.comingSoon.length > 0 && (filtered.comingSoon.length > 0 || filtersActive) && (
                     <Section
+                        id="coming-soon"
                         locale={locale}
                         title={t('Coming soon')}
                         count={filtered.comingSoon.length}
                         note={t('Read from the game files. The developers can change future rotations before they go live.')}
                     >
+                        {filtered.comingSoon.length === 0 && emptyLine(t('No future rotations match.'))}
+
                         {filtersActive ? (
-                            // Filtered results are sparse, so a single grid reads better than one row per day.
-                            <div className="grid">
-                                {showComingSoon.map(offer => (
-                                    <OfferCard key={offer.Id} offer={offer} likeCount={allLikes[offer.Id] || 0} rating={allRatings[offer.Id]} heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]} arrival={offer.startDate} />
+                            // Filtered results are sparse, so one grid with dates on the cards reads better than a row per day.
+                            <>
+                                <div className="grid">{shownFiltered.map(offer => card(offer, offer.startDate))}</div>
+                                {filtered.comingSoon.length > shownFiltered.length && (
+                                    <button type="button" className="more-btn" onClick={() => setVisibleFiltered(v => v + FILTERED_PAGE)}>
+                                        {t('Show more')} <span>({(filtered.comingSoon.length - shownFiltered.length).toLocaleString(locale)} {t('left')})</span>
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {shownDays.map(([date, offers]) => (
+                                    <div key={date} className="day-group">
+                                        <h3 className="day-head">{fmtDay(date)} <span>· {relDay(date)}</span></h3>
+                                        <div className="grid">{offers.map(offer => card(offer))}</div>
+                                    </div>
                                 ))}
-                            </div>
-                        ) : groupByDate(showComingSoon).map(([date, offers]) => (
-                            <div key={date} className="day-group">
-                                <h3 className="day-head">{fmtDay(date)}</h3>
-                                <div className="grid">
-                                    {offers.map(offer => (
-                                        <OfferCard key={offer.Id} offer={offer} likeCount={allLikes[offer.Id] || 0} rating={allRatings[offer.Id]} heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]} arrival={offer.startDate} />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                                {filtered.comingSoonDays.length > shownDays.length && (
+                                    <button type="button" className="more-btn" onClick={() => setVisibleDays(d => d + DAYS_STEP)}>
+                                        {t('Show next 7 days')} <span>({shownDays.length} / {filtered.comingSoonDays.length} {t('days')})</span>
+                                    </button>
+                                )}
+                            </>
+                        )}
                     </Section>
                 )}
 
-                {total === 0 && (
+                {!filtersActive && data.available.length + data.upcoming.length + data.comingSoon.length === 0 && (
+                    <div className="empty"><p>{t('No weapons currently available.')}</p></div>
+                )}
+                {filtersActive && filtered.available.length + futureMatches.length === 0 && (
                     <div className="empty">
-                        <p>{filtersActive ? t('No weapons match these filters.') : t('No weapons currently available.')}</p>
-                        {filtersActive && <button type="button" className="control-btn control" onClick={clearFilters}>{t('Clear filters')}</button>}
+                        <p>{t('No weapons match these filters.')}</p>
+                        <button type="button" className="control control-btn" onClick={clearFilters}>{t('Clear filters')}</button>
                     </div>
                 )}
-                {hasMore && <div ref={loadMoreRef} className="load-more" aria-hidden="true" />}
             </main>
 
             <footer className="site-footer">
                 <div className="container footer-inner">
-                    <span>Rampage Armory</span>
+                    <span className="footer-brand">Rampage Armory</span>
+                    <span><VisitorStats /> {t('visits')}</span>
                     <span>Assets © Dungeon Rampage, ported by Gamebreaking Studios Inc. Certain rights reserved.</span>
-                    <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">{t('Discord')}</a>
+                    <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
             </footer>
         </div>

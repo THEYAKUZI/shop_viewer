@@ -34,3 +34,9 @@ export const modifierName = (modifier, t) => {
     if (modifier.MODIFIER_TYPE) return titleCase(modifier.MODIFIER_TYPE);
     return modifier.Name || modifier.Constant;
 };
+
+// Level-scaled perks say e.g. "mana by 10 + Weapon Level * 0.4". Work out the number for this item's level.
+const LEVEL_FORMULA = /(\d+(?:\.\d+)?) \+ (?:Weapon Level|Nível da Arma) \* ([\d.]+)/;
+
+export const resolveLevelFormula = (text, level) =>
+    text.replace(LEVEL_FORMULA, (_, base, perLevel) => String(Math.round(Number(base) + Number(perLevel) * (level || 1))));

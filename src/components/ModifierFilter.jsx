@@ -76,6 +76,7 @@ export function ModifierPicker({ options, selected, onChange }) {
                     <div className="mod-panel-foot">
                         <span>{t('Shows items that have every selected modifier.')}</span>
                         {selected.length > 0 && <button type="button" className="link-btn" onClick={() => onChange([])}>{t('Clear')}</button>}
+                        <button type="button" className="done-btn" onClick={() => setOpen(false)}>{t('Done')}</button>
                     </div>
                 </div>
             )}

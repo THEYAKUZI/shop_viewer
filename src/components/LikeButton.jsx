@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { getLocalLikeStatus, toggleLike } from '../utils/likeService';
+import { useLanguage } from '../contexts/useLanguage';
 
 export default function LikeButton({ offerId, count = 0 }) {
+    const { t } = useLanguage();
     const [liked, setLiked] = useState(() => getLocalLikeStatus(offerId));
     const [animating, setAnimating] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -35,7 +37,8 @@ export default function LikeButton({ offerId, count = 0 }) {
             type="button"
             className={`like-btn ${liked ? 'liked' : ''} ${animating ? 'pop' : ''}`}
             onClick={handleClick}
-            title={liked ? "Unlike" : "Like"}
+            title={liked ? t('Unlike') : t('Like')}
+            aria-label={`${t('Like')} (${shownCount})`}
             aria-pressed={liked}
         >
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
