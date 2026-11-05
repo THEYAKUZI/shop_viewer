@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import LikeButton from './LikeButton';
 import StarRating from './StarRating';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/useLanguage';
 import { toPng } from 'html-to-image';
 
 const TYPE_MAP = {
@@ -109,7 +109,7 @@ function OfferCard({ offer, likeCount = 0 }) {
                     crossOrigin="anonymous"
                     loading="lazy"
                     decoding="async"
-                    onError={(event) => { event.currentTarget.src = 'https://via.placeholder.com/64?text=?'; }}
+                    onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }}
                 />
             </div>
 

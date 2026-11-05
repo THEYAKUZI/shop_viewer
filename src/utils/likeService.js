@@ -1,122 +1,62 @@
-import { db } from '../firebase';
-import { ref, onValue, runTransaction, get } from 'firebase/database';
+import { db, getUid } from '../firebase';
+import { ref, onValue, get, update, increment } from 'firebase/database';
 
+// Remembers which offers this browser liked so hearts render instantly.
+// The server-side vote (likeVotes/{offerId}/{uid}) is the source of truth.
 const LOCAL_STORAGE_KEY = 'rampage_user_likes_v1';
 
-// Helpers for local tracking (did *I* like this?)
-export const getLocalLikeStatus = (id) => {
+const readLocalLikes = () => {
     try {
-        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-        return !!stored[id];
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     } catch {
-        return false;
+        return {};
     }
 };
 
-const setLocalLikeStatus = (id, status) => {
+export const getLocalLikeStatus = (id) => !!readLocalLikes()[id];
+
+const setLocalLikeStatus = (id, liked) => {
     try {
-        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-        if (status) stored[id] = true;
+        const stored = readLocalLikes();
+        if (liked) stored[id] = true;
         else delete stored[id];
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stored));
-    } catch (e) {
-        console.error("Local storage error:", e);
+    } catch {
+        // Storage can be blocked (private mode); the heart just won't persist.
     }
 };
 
-// --- Real Implementation ---
-
-export const subscribeToLikes = (id, onUpdate) => {
-    const isLikedLocally = getLocalLikeStatus(id);
-
-    // If Firebase is configured
-    if (db) {
-        const likesRef = ref(db, `likes/${id}`);
-        const unsubscribe = onValue(likesRef, (snapshot) => {
-            const val = snapshot.val();
-            const count = (typeof val === 'number') ? val : 0;
-            const currentLikedStatus = getLocalLikeStatus(id);
-            onUpdate({ count, isLiked: currentLikedStatus });
-        });
-        return unsubscribe;
-    }
-
-    // Fallback: Mock mode (similar to previous version)
-    // We simulate a subscription by returning immediate value
-    // and listening for window events
-    const mockHash = (str) => {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        return Math.abs(hash % 145) + 5;
-    };
-
-    // Initial callback
-    let mockCount = mockHash(id);
-    // Adjust mock count based on local like status to mimic server
-    // (If I liked it locally, but we are mocking server, we assume server count includes me)
-    // Actually simplicity: Mock count is static base + 1 if liked.
-
-    const sendUpdate = () => {
-        const liked = getLocalLikeStatus(id);
-        onUpdate({
-            count: mockCount + (liked ? 1 : 0),
-            isLiked: liked
-        });
-    };
-
-    sendUpdate();
-
-    const handleStorage = () => sendUpdate();
-    window.addEventListener('mock-like-update', handleStorage);
-
-    return () => {
-        window.removeEventListener('mock-like-update', handleStorage);
-    };
-};
-
+// Likes or unlikes an offer. Resolves to { liked, changedServer }.
 export const toggleLike = async (id) => {
-    const wasLiked = getLocalLikeStatus(id);
-    const newStatus = !wasLiked;
+    const wantLiked = !getLocalLikeStatus(id);
+    setLocalLikeStatus(id, wantLiked);
+    if (!db) return { liked: wantLiked, changedServer: false };
 
-    setLocalLikeStatus(id, newStatus);
+    try {
+        const uid = await getUid();
+        const votePath = `likeVotes/${id}/${uid}`;
+        const hasVote = (await get(ref(db, votePath))).exists();
 
-    if (db) {
-        // Update Firebase
-        const likesRef = ref(db, `likes/${id}`);
-        try {
-            await runTransaction(likesRef, (currentCount) => {
-                if (currentCount === null) return 1; // Initialize
-                // If we are liking, +1. If unliking, -1.
-                return newStatus ? (currentCount + 1) : (currentCount - 1);
-            });
-        } catch (e) {
-            console.error("Firebase transaction failed:", e);
-            // Revert local status if network fails? 
-            // For now, keep optimistic UI or revert. 
-            // Simple: don't revert, just log.
-        }
-    } else {
-        // Update Mock
-        window.dispatchEvent(new Event('mock-like-update'));
+        // Already in the wanted state on the server. This also covers likes made
+        // before per-user votes existed: they stay counted and are only cleared locally.
+        if (hasVote === wantLiked) return { liked: wantLiked, changedServer: false };
+
+        await update(ref(db), {
+            [votePath]: wantLiked ? true : null,
+            [`likes/${id}`]: increment(wantLiked ? 1 : -1),
+        });
+        return { liked: wantLiked, changedServer: true };
+    } catch (e) {
+        console.error('Like failed:', e);
+        setLocalLikeStatus(id, !wantLiked);
+        return { liked: !wantLiked, changedServer: false };
     }
-
-    return newStatus;
 };
 
 export const subscribeToAllLikes = (onUpdate) => {
-    if (db) {
-        const likesRef = ref(db, 'likes');
-        const unsubscribe = onValue(likesRef, (snapshot) => {
-            const val = snapshot.val() || {};
-            onUpdate(val);
-        });
-        return unsubscribe;
+    if (!db) {
+        onUpdate({});
+        return () => { };
     }
-
-    // Mock fallback
-    // In mock mode, we don't really have "all" likes easily accessible or changing 
-    // without iterating everything, but for filtering we can return an empty object or mock data.
-    // For now, let's just return empty in mock mode properly to avoid errors.
-    onUpdate({});
-    return () => { };
+    return onValue(ref(db, 'likes'), (snapshot) => onUpdate(snapshot.val() || {}));
 };

@@ -1,78 +1,31 @@
 import { db } from '../firebase';
-import { ref, onValue, runTransaction, push, onDisconnect, set, serverTimestamp } from 'firebase/database';
+import { ref, onValue, set, increment } from 'firebase/database';
 
-export const initVisitorTracking = (onUpdate) => {
+const LAST_VISIT_KEY = 'rampage_last_visit_day';
+
+// Counts each browser once per day, so new tabs and reloads don't add visits.
+const shouldCountVisit = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+        if (localStorage.getItem(LAST_VISIT_KEY) === today) return false;
+        localStorage.setItem(LAST_VISIT_KEY, today);
+    } catch {
+        // Storage blocked: count this visit and move on.
+    }
+    return true;
+};
+
+// Increments the visit counter (once per day) and streams the total to onTotal.
+export const initVisitorTracking = (onTotal) => {
     if (!db) {
-        // Mock data if firebase not set up
-        onUpdate({ total: 1000, online: 1 });
+        onTotal(0);
         return () => { };
     }
 
-    // 1. Total Visits Counter
-    // We ideally only want to count this once per session/load
     const visitsRef = ref(db, 'stats/totalVisits');
-
-    // Increment only if we haven't tracked this session yet (simple debounce)
-    const sessionKey = `rampage_visit_${new Date().toISOString().split('T')[0]}`;
-    if (!sessionStorage.getItem(sessionKey)) {
-        runTransaction(visitsRef, (current) => {
-            return (current || 0) + 1;
-        }).then(() => {
-            sessionStorage.setItem(sessionKey, 'true');
-        }).catch(err => console.error("Visit tx failed", err));
+    if (shouldCountVisit()) {
+        set(visitsRef, increment(1)).catch(err => console.error("Visit count failed", err));
     }
 
-    // 2. Online Users (Presence)
-    // Reference to standard firebase presence system
-    const connectedRef = ref(db, '.info/connected');
-    const onlineUsersRef = ref(db, 'stats/live_sessions_v1'); // Changed key to reset
-    let myUserRef;
-
-    // Monitor connection state
-    const unsubConnected = onValue(connectedRef, (snap) => {
-        if (snap.val() === true) {
-            // We're connected!
-            // Create a reference specifically for this session
-            myUserRef = push(onlineUsersRef);
-
-            // When we disconnect (close tab/network loss), remove this ref
-            onDisconnect(myUserRef).remove();
-
-            // Set our status
-            set(myUserRef, {
-                timestamp: serverTimestamp(),
-                userAgent: navigator.userAgent
-            });
-        }
-    });
-
-    // 3. Listen for counts to display
-    // Total Visits Listener
-    const unsubVisits = onValue(visitsRef, (snap) => {
-        onUpdate(prev => ({ ...prev, total: snap.val() || 0 }));
-    });
-
-    // Separate listener for online count
-    const unsubOnline = onValue(onlineUsersRef, (snap) => {
-        const users = snap.val() || {};
-        const onlineCount = Object.keys(users).length;
-        onUpdate(prev => ({ ...prev, online: onlineCount }));
-    });
-
-    return () => {
-        unsubVisits();
-        unsubOnline();
-        unsubConnected();
-
-        // Manual cleanup: If the component unmounts (e.g. navigation), 
-        // remove our specific node so we don't count as double if we come back.
-        if (myUserRef) {
-            set(myUserRef, null).catch(err => console.error("Cleanup failed", err));
-        }
-    };
-};
-
-// Helper just to get initial read if needed
-const getOnlineCount = (currentTotal) => {
-    // implementation handled in listeners
+    return onValue(visitsRef, (snap) => onTotal(snap.val() || 0));
 };

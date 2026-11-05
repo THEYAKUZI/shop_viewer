@@ -1,6 +1,6 @@
 import React from 'react';
 import './ModifierFilter.css';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/useLanguage';
 
 const ModifierFilter = ({ options, selected, onChange }) => {
     const { t } = useLanguage();

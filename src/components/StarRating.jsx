@@ -19,12 +19,9 @@ export default function StarRating({ offerId }) {
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            // Toggle off if clicking same rating
-            if (data.myRating === rating) {
-                await submitRating(offerId, null);
-            } else {
-                await submitRating(offerId, rating);
-            }
+            // Clicking your current rating again removes it
+            const stored = await submitRating(offerId, data.myRating === rating ? null : rating);
+            setData(prev => ({ ...prev, myRating: stored ?? undefined }));
         } finally {
             setIsSubmitting(false);
         }

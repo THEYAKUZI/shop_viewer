@@ -1,0 +1,45 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "stats": {
+      "totalVisits": {
+        ".read": true,
+        ".write": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+      }
+    },
+    "likes": {
+      ".read": true,
+      "$offerId": {
+        ".write": "auth != null && newData.isNumber() && ((!root.child('likeVotes').child($offerId).child(auth.uid).exists() && newData.parent().parent().child('likeVotes').child($offerId).child(auth.uid).val() === true && ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))) || (root.child('likeVotes').child($offerId).child(auth.uid).exists() && !newData.parent().parent().child('likeVotes').child($offerId).child(auth.uid).exists() && data.exists() && newData.val() === data.val() - 1))"
+      }
+    },
+    "likeVotes": {
+      "$offerId": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && ((!data.exists() && newData.val() === true && ((!root.child('likes').child($offerId).exists() && newData.parent().parent().parent().child('likes').child($offerId).val() === 1) || (root.child('likes').child($offerId).exists() && newData.parent().parent().parent().child('likes').child($offerId).val() === root.child('likes').child($offerId).val() + 1))) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('likes').child($offerId).val() === root.child('likes').child($offerId).val() - 1))"
+        }
+      }
+    },
+    "ratings": {
+      ".read": true,
+      "$offerId": {
+        "sum": {
+          ".write": "auth != null && newData.isNumber() && newData.parent().parent().parent().child('ratingVotes').child($offerId).child(auth.uid).val() !== root.child('ratingVotes').child($offerId).child(auth.uid).val()"
+        },
+        "count": {
+          ".write": "auth != null && newData.isNumber() && newData.parent().parent().parent().child('ratingVotes').child($offerId).child(auth.uid).val() !== root.child('ratingVotes').child($offerId).child(auth.uid).val()"
+        }
+      }
+    },
+    "ratingVotes": {
+      "$offerId": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && ((!data.exists() && (newData.val() === 1 || newData.val() === 2 || newData.val() === 3 || newData.val() === 4 || newData.val() === 5) && ((!root.child('ratings').child($offerId).child('count').exists() && newData.parent().parent().parent().child('ratings').child($offerId).child('count').val() === 1) || (root.child('ratings').child($offerId).child('count').exists() && newData.parent().parent().parent().child('ratings').child($offerId).child('count').val() === root.child('ratings').child($offerId).child('count').val() + 1)) && ((!root.child('ratings').child($offerId).child('sum').exists() && newData.parent().parent().parent().child('ratings').child($offerId).child('sum').val() === newData.val()) || (root.child('ratings').child($offerId).child('sum').exists() && newData.parent().parent().parent().child('ratings').child($offerId).child('sum').val() === root.child('ratings').child($offerId).child('sum').val() + newData.val()))) || (data.exists() && (newData.val() === 1 || newData.val() === 2 || newData.val() === 3 || newData.val() === 4 || newData.val() === 5) && newData.parent().parent().parent().child('ratings').child($offerId).child('count').val() === root.child('ratings').child($offerId).child('count').val() && newData.parent().parent().parent().child('ratings').child($offerId).child('sum').val() === root.child('ratings').child($offerId).child('sum').val() + newData.val() - data.val()) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('ratings').child($offerId).child('count').val() === root.child('ratings').child($offerId).child('count').val() - 1 && newData.parent().parent().parent().child('ratings').child($offerId).child('sum').val() === root.child('ratings').child($offerId).child('sum').val() - data.val()))"
+        }
+      }
+    }
+  }
+}

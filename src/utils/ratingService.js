@@ -1,128 +1,78 @@
+import { db, getUid } from '../firebase';
+import { ref, onValue, get, update, increment } from 'firebase/database';
 
-import { db } from '../firebase';
-import { ref, onValue, runTransaction } from 'firebase/database';
-
+// Remembers what this browser rated so stars render instantly.
+// The server-side vote (ratingVotes/{offerId}/{uid}) is the source of truth.
 const LOCAL_STORAGE_KEY_RATINGS = 'rampage_user_ratings_v1';
 
-// Helpers for local tracking (what did I rate this?)
-const getLocalRating = (id) => {
+const readLocalRatings = () => {
     try {
-        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_RATINGS) || '{}');
-        return stored[id]; // Returns number or undefined
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_RATINGS) || '{}');
     } catch {
-        return undefined;
+        return {};
     }
 };
+
+const getLocalRating = (id) => readLocalRatings()[id];
 
 const setLocalRating = (id, rating) => {
     try {
-        const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_RATINGS) || '{}');
-        if (rating === null || rating === undefined) {
-            delete stored[id];
-        } else {
-            stored[id] = rating;
-        }
+        const stored = readLocalRatings();
+        if (rating == null) delete stored[id];
+        else stored[id] = rating;
         localStorage.setItem(LOCAL_STORAGE_KEY_RATINGS, JSON.stringify(stored));
-    } catch (e) {
-        console.error("Local storage error:", e);
+    } catch {
+        // Storage can be blocked (private mode); the rating just won't persist locally.
     }
 };
-
-// --- Real Implementation ---
 
 export const subscribeToRatings = (id, onUpdate) => {
-    const myRating = getLocalRating(id);
-
-    // If Firebase is configured
-    if (db) {
-        const ratingRef = ref(db, `ratings/${id}`);
-        const unsubscribe = onValue(ratingRef, (snapshot) => {
-            const val = snapshot.val();
-            const sum = (val && val.sum) || 0;
-            const count = (val && val.count) || 0;
-            const average = count > 0 ? (sum / count) : 0;
-
-            onUpdate({
-                average: parseFloat(average.toFixed(1)),
-                count,
-                myRating: getLocalRating(id)
-            });
-        });
-        return unsubscribe;
+    if (!db) {
+        onUpdate({ average: 0, count: 0, myRating: getLocalRating(id) });
+        return () => { };
     }
-
-    // Fallback: Mock mode
-    const mockHash = (str) => {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        return (Math.abs(hash % 20) + 30) / 10; // Mock 3.0 to 5.0
-    };
-
-    let mockAvg = mockHash(id);
-    let mockCount = Math.floor(mockAvg * 10);
-
-    const sendUpdate = () => {
-        const r = getLocalRating(id);
-        // Simple mock adjust
+    return onValue(ref(db, `ratings/${id}`), (snapshot) => {
+        const val = snapshot.val() || {};
+        const sum = val.sum || 0;
+        const count = val.count || 0;
+        const average = count > 0 ? sum / count : 0;
         onUpdate({
-            average: r ? ((mockAvg * mockCount + r) / (mockCount + 1)).toFixed(1) : mockAvg.toFixed(1),
-            count: mockCount + (r ? 1 : 0),
-            myRating: r
+            average: parseFloat(average.toFixed(1)),
+            count,
+            myRating: getLocalRating(id)
         });
-    };
-
-    sendUpdate();
-    const handleStorage = () => sendUpdate();
-    window.addEventListener('mock-rating-update', handleStorage);
-
-    return () => {
-        window.removeEventListener('mock-rating-update', handleStorage);
-    };
+    });
 };
 
-
+// Sets this visitor's rating (1-5) for an offer, or removes it with null.
+// Resolves to the rating that is now stored for this browser.
 export const submitRating = async (id, newRating) => {
-    const oldRating = getLocalRating(id);
-
-    // Save locally first
+    const previousLocal = getLocalRating(id);
     setLocalRating(id, newRating);
+    if (!db) return newRating;
 
-    if (db) {
-        // Update Firebase
-        const ratingRef = ref(db, `ratings/${id}`);
-        try {
-            await runTransaction(ratingRef, (currentData) => {
-                if (currentData === null) {
-                    if (newRating === null) return null; // Can't delete what doesn't exist
-                    return { sum: newRating, count: 1 };
-                }
+    try {
+        const uid = await getUid();
+        const votePath = `ratingVotes/${id}/${uid}`;
+        const snap = await get(ref(db, votePath));
+        const oldRating = snap.exists() ? snap.val() : null;
 
-                let { sum = 0, count = 0 } = currentData;
+        // Nothing to change on the server. Removing a rating made before per-user
+        // votes existed also lands here: it stays in the totals and is cleared locally.
+        if (oldRating === newRating || (oldRating === null && newRating === null)) return newRating;
 
-                if (newRating === null) {
-                    // Removing rating
-                    if (oldRating !== undefined) {
-                        sum = Math.max(0, sum - oldRating);
-                        count = Math.max(0, count - 1);
-                    }
-                } else if (oldRating !== undefined) {
-                    // Updating existing rating
-                    sum = sum - oldRating + newRating;
-                } else {
-                    // New rating
-                    sum = sum + newRating;
-                    count = count + 1;
-                }
+        const updates = {
+            [votePath]: newRating,
+            [`ratings/${id}/sum`]: increment((newRating || 0) - (oldRating || 0)),
+        };
+        if (oldRating === null) updates[`ratings/${id}/count`] = increment(1);
+        if (newRating === null) updates[`ratings/${id}/count`] = increment(-1);
 
-                return { sum, count };
-            });
-        } catch (e) {
-            console.error("Firebase transaction failed:", e);
-        }
-    } else {
-        // Update Mock
-        window.dispatchEvent(new Event('mock-rating-update'));
+        await update(ref(db), updates);
+        return newRating;
+    } catch (e) {
+        console.error('Rating failed:', e);
+        setLocalRating(id, previousLocal);
+        return previousLocal;
     }
-
-    return newRating;
 };

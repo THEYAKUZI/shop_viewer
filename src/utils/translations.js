@@ -206,7 +206,6 @@ export const translations = {
         "Food on Hit": "Comida ao Acertar",
         "Food on Kill": "Comida ao Matar",
         "Projectile Count": "Cont. Projéteis",
-        "Projectile Count": "Cont. Projéteis",
         "Buff Duration": "Duração Buff",
 
         // Specific Modifier Names (Stats/Legendary)

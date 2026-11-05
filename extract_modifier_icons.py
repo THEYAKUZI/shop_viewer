@@ -1,9 +1,14 @@
 import os
 import shutil
 import re
+import sys
 
-SOURCE_DIR = r"c:/Users/defia/Desktop/rampage2/fullgamedecompiled/Resources/Art2D/Icons/Modifier/db_icons_modifier/sprites"
-TARGET_DIR = r"c:/Users/defia/Desktop/rampage2/fullgamedecompiled/shop_viewer/public/icons"
+# Usage: python extract_modifier_icons.py <ffdec sprites folder for db_icons_modifier>
+# Copies every icon_modifier_* sprite into public/icons.
+if len(sys.argv) != 2:
+    sys.exit("Usage: python extract_modifier_icons.py <sprites folder>")
+SOURCE_DIR = sys.argv[1]
+TARGET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "icons")
 
 def main():
     if not os.path.exists(TARGET_DIR):

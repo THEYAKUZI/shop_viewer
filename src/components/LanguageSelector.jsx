@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './LanguageSelector.css';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/useLanguage';
 
 const LanguageSelector = () => {
     const [isOpen, setIsOpen] = useState(false);

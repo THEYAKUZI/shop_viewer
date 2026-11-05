@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import OfferCard from '../components/OfferCard';
 import ShopTimer from '../components/ShopTimer';
 import '../index.css';
@@ -7,10 +7,55 @@ import { parseGameMaster, parseHeroes } from '../utils/parser';
 import { subscribeToAllLikes } from '../utils/likeService';
 import VisitorStats from '../components/VisitorStats';
 import LanguageSelector from '../components/LanguageSelector';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/useLanguage';
 
 const CARDS_PER_SECTION = 8;
 const LOAD_INCREMENT = 8;
+
+const HERO_ORDER = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Battle Chef': 5, 'Vampire Hunter': 6, 'Ghost Samurai': 7 };
+
+const offerPrice = (offer) => offer.items[0]?.price ?? 0;
+
+// Comparators for the sort dropdown. Each takes the like counts and returns a sort function.
+const SORTERS = {
+    popular: (likes) => (a, b) => (likes[b.Id] || 0) - (likes[a.Id] || 0),
+    newest: () => (a, b) => (new Date(b.startDate) - new Date(a.startDate)) || (b.Id - a.Id),
+    'price-low': () => (a, b) => offerPrice(a) - offerPrice(b),
+    'price-high': () => (a, b) => offerPrice(b) - offerPrice(a),
+};
+
+// Turns the game data into the shop sections plus the hero and modifier filter options.
+function buildShopState(json) {
+    const offers = parseGameMaster(json);
+    const heroes = parseHeroes(json);
+    heroes.sort((a, b) => (HERO_ORDER[a.name] || 99) - (HERO_ORDER[b.name] || 99));
+
+    const modSet = new Map();
+    offers.forEach(o => (o.items || []).forEach(item => {
+        (item.modifiers || []).forEach(mod => {
+            if (mod.isLegendary) {
+                const key = `LEG|${mod.Name}`;
+                if (!modSet.has(key)) modSet.set(key, { label: mod.Name, value: key, isLegendary: true, iconName: mod.IconName, description: mod.Description });
+            } else if (mod.MODIFIER_TYPE) {
+                const key = `TYPE|${mod.MODIFIER_TYPE}`;
+                if (!modSet.has(key)) {
+                    const label = mod.MODIFIER_TYPE.split('_').map(s => s.charAt(0) + s.slice(1).toLowerCase()).join(' ');
+                    modSet.set(key, { label, value: key, isLegendary: false, iconName: mod.IconName, description: mod.Description });
+                }
+            }
+        });
+    }));
+
+    const available = offers.filter(o => o.isAvailable);
+    const allUpcoming = offers.filter(o => o.isUpcoming);
+    let upcoming = [], comingSoon = [];
+    if (allUpcoming.length > 0) {
+        const nextBatchDate = allUpcoming[0].startDate;
+        upcoming = allUpcoming.filter(o => o.startDate === nextBatchDate);
+        comingSoon = allUpcoming.filter(o => o.startDate !== nextBatchDate);
+    }
+    return { heroes, modifierOptions: Array.from(modSet.values()), data: { available, upcoming, comingSoon } };
+}
 
 function ShopPage() {
     const { t } = useLanguage();
@@ -29,62 +74,28 @@ function ShopPage() {
     const [visiblePerSection, setVisiblePerSection] = useState(CARDS_PER_SECTION);
     const loadMoreRef = useRef(null);
 
-    const processOffers = (json) => {
-        try {
-            const offers = parseGameMaster(json);
-            const parsedHeroes = parseHeroes(json);
-            const order = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Battle Chef': 5, 'Vampire Hunter': 6, 'Ghost Samurai': 7 };
-            parsedHeroes.sort((a, b) => (order[a.name] || 99) - (order[b.name] || 99));
-            setHeroes(parsedHeroes);
-
-            const modSet = new Map();
-            const processItemModifiers = (item) => {
-                if (!item.modifiers) return;
-                item.modifiers.forEach(mod => {
-                    if (mod.isLegendary) {
-                        const key = `LEG|${mod.Name}`;
-                        if (!modSet.has(key)) modSet.set(key, { label: mod.Name, value: key, isLegendary: true, iconName: mod.IconName, description: mod.Description });
-                    } else if (mod.MODIFIER_TYPE) {
-                        const key = `TYPE|${mod.MODIFIER_TYPE}`;
-                        if (!modSet.has(key)) {
-                            const label = mod.MODIFIER_TYPE.split('_').map(s => s.charAt(0) + s.slice(1).toLowerCase()).join(' ');
-                            modSet.set(key, { label, value: key, isLegendary: false, iconName: mod.IconName, description: mod.Description });
-                        }
-                    }
-                });
-            };
-            offers.forEach(o => { if (o.items) o.items.forEach(processItemModifiers); });
-            setModifierOptions(Array.from(modSet.values()));
-
-            const available = offers.filter(o => o.isAvailable);
-            const allUpcoming = offers.filter(o => o.isUpcoming);
-            let upcoming = [], comingSoon = [];
-            if (allUpcoming.length > 0) {
-                const nextBatchDate = allUpcoming[0].startDate;
-                upcoming = allUpcoming.filter(o => o.startDate === nextBatchDate);
-                comingSoon = allUpcoming.filter(o => o.startDate !== nextBatchDate);
-            }
-            setData({ available, upcoming, comingSoon });
-        } catch (e) {
-            console.error(e);
-            throw new Error("Failed to parse DB_GameMaster.json: " + e.message);
-        }
-    };
-
-    useEffect(() => {
-        fetch(`DB_GameMaster.json?v=${Date.now()}`)
-            .then(res => { if (!res.ok) throw new Error("Failed to load DB_GameMaster.json."); return res.json(); })
-            .then(json => { setRawJson(json); processOffers(json); setLoading(false); })
-            .catch(err => { console.error(err); setError(err.message); setLoading(false); });
-        const unsubscribe = subscribeToAllLikes(setAllLikes);
-        return () => unsubscribe();
+    const applyShopData = useCallback((json) => {
+        const state = buildShopState(json);
+        setHeroes(state.heroes);
+        setModifierOptions(state.modifierOptions);
+        setData(state.data);
     }, []);
 
-    const handleShopReset = () => { if (rawJson) processOffers(rawJson); };
-
     useEffect(() => {
-        setVisiblePerSection(CARDS_PER_SECTION);
-    }, [searchQuery, selectedHero, selectedModifiers, sortMode]);
+        // The version changes whenever the data file changes, so browsers can cache it in between.
+        fetch(`DB_GameMaster.json?v=${__DATA_VERSION__}`)
+            .then(res => { if (!res.ok) throw new Error("Failed to load DB_GameMaster.json."); return res.json(); })
+            .then(json => { setRawJson(json); applyShopData(json); setLoading(false); })
+            .catch(err => { console.error(err); setError(err.message); setLoading(false); });
+        return subscribeToAllLikes(setAllLikes);
+    }, [applyShopData]);
+
+    // Re-split the sections when the current rotation ends.
+    const handleShopReset = useCallback(() => { if (rawJson) applyShopData(rawJson); }, [rawJson, applyShopData]);
+
+    // Filter and sort changes start the list from the top again.
+    const resetPaging = () => setVisiblePerSection(CARDS_PER_SECTION);
+    const selectHero = (hero) => { setHasInteracted(true); setSelectedHero(hero); resetPaging(); };
 
     const filteredData = useMemo(() => {
         const filterFn = (offer) => {
@@ -120,12 +131,10 @@ function ShopPage() {
             upcoming: data.upcoming.filter(filterFn),
             comingSoon: data.comingSoon.filter(filterFn)
         };
-        if (sortMode === 'popular') {
-            const sortFn = (a, b) => (allLikes[b.Id] || 0) - (allLikes[a.Id] || 0);
-            result.available.sort(sortFn);
-            result.upcoming.sort(sortFn);
-            result.comingSoon.sort(sortFn);
-        }
+        const sortFn = (SORTERS[sortMode] || SORTERS.popular)(allLikes);
+        result.available.sort(sortFn);
+        result.upcoming.sort(sortFn);
+        result.comingSoon.sort(sortFn);
         return result;
     }, [allLikes, data, searchQuery, selectedHero, selectedModifiers, sortMode]);
     const showAvailable = filteredData.available.slice(0, visiblePerSection);
@@ -145,7 +154,7 @@ function ShopPage() {
         }, { rootMargin: '200px' });
         observer.observe(el);
         return () => observer.disconnect();
-    }, [hasMore]);
+    }, [hasMore, visiblePerSection]); // re-observing after each load keeps loading while the marker stays on screen
 
     if (loading) {
         return (
@@ -166,11 +175,9 @@ function ShopPage() {
         );
     }
 
-    let nextResetDate = null;
-    if (data.available.length > 0) {
-        const endDates = data.available.map(o => new Date(o.endDate));
-        nextResetDate = new Date(Math.min(...endDates));
-    }
+    const nextResetTime = data.available.length > 0
+        ? Math.min(...data.available.map(o => new Date(o.endDate).getTime()))
+        : null;
 
     return (
         <div className="app">
@@ -218,7 +225,7 @@ function ShopPage() {
                     <div className="hero-selector-row">
                         <button
                             className={`hero-select-btn ${selectedHero === null ? 'active' : ''}`}
-                            onClick={() => { setHasInteracted(true); setSelectedHero(null); }}
+                            onClick={() => selectHero(null)}
                         >
                             <div className="hero-select-icon-wrap">
                                 <svg className={`all-heroes-check ${selectedHero === null ? 'checked' : ''} ${hasInteracted ? 'animated' : ''}`} viewBox="0 0 24 24" width="28" height="28">
@@ -232,7 +239,7 @@ function ShopPage() {
                             <button
                                 key={hero.id}
                                 className={`hero-select-btn ${hero.name.toLowerCase().replace(' ', '-')} ${selectedHero?.id === hero.id ? 'active' : ''}`}
-                                onClick={() => { setHasInteracted(true); setSelectedHero(selectedHero?.id === hero.id ? null : hero); }}
+                                onClick={() => selectHero(selectedHero?.id === hero.id ? null : hero)}
                             >
                                 <div className="hero-select-icon-wrap">
                                     {hero.iconName && <img src={`icons/${hero.iconName}.png`} alt="" className="hero-select-icon" onError={(e) => { e.target.style.display = 'none' }} />}
@@ -244,7 +251,7 @@ function ShopPage() {
 
                     {/* Modifier filter chips */}
                     <div className="modifier-section">
-                        <ModifierFilter options={modifierOptions} selected={selectedModifiers} onChange={setSelectedModifiers} />
+                        <ModifierFilter options={modifierOptions} selected={selectedModifiers} onChange={(mods) => { setSelectedModifiers(mods); resetPaging(); }} />
                     </div>
 
                     {/* Search + Sort */}
@@ -256,11 +263,11 @@ function ShopPage() {
                                 className="search-input"
                                 placeholder={t('Search items...')}
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => { setSearchQuery(e.target.value); resetPaging(); }}
                             />
                         </div>
                         <div className="sort-dropdown-wrap">
-                            <select className="sort-dropdown" value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                            <select className="sort-dropdown" value={sortMode} onChange={(e) => { setSortMode(e.target.value); resetPaging(); }}>
                                 <option value="popular">SORT BY: {t('MOST LIKED')}</option>
                                 <option value="newest">SORT BY: {t('NEWEST')}</option>
                                 <option value="price-low">SORT BY: {t('PRICE LOW')}</option>
@@ -283,10 +290,10 @@ function ShopPage() {
                                         <p className="featured-sub">{t('Available right now in the shop')}</p>
                                     </div>
                                     <div className="featured-line" />
-                                    {nextResetDate && (
+                                    {nextResetTime && (
                                         <div className="header-timer">
                                             <span className="header-timer-label">{t('REFRESHES IN')}</span>
-                                            <ShopTimer targetDate={nextResetDate} onExpire={handleShopReset} />
+                                            <ShopTimer targetTime={nextResetTime} onExpire={handleShopReset} />
                                         </div>
                                     )}
                                 </div>
