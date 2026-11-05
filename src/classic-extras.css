@@ -1,0 +1,126 @@
+/* Additions to the original design for the newer features, written in the same visual language. */
+
+/* Hero + weapon type line on cards */
+.item-card-subtitle.item-card-hero {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: normal;
+}
+.item-card-hero img { width: 16px; height: 16px; border-radius: 3px; flex: none; }
+.item-card-hero span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-card-mod-name.legendary { color: var(--purple); }
+
+/* Language menu: short codes instead of flag emoji */
+.lang-code {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    padding: 0 4px;
+    border: 1px solid var(--border-1);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+/* Search clear button */
+.search-input-wrap { position: relative; }
+.search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: var(--text-2);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+.search-clear:hover { color: var(--accent); }
+
+/* Compact toggle, styled like the sort dropdown */
+.compact-toggle {
+    flex: none;
+    padding: 10px 14px;
+    border: 1px solid rgba(80, 80, 80, 0.5);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.82);
+    color: rgba(200, 200, 200, 0.9);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.compact-toggle:hover { border-color: rgba(248, 135, 2, 0.45); }
+.compact-toggle.active { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.item-card.compact .item-card-mod-desc { display: none; }
+
+/* "Not in the shop today" line when filters are on */
+.filter-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    margin: 4px 0 18px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-0);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    background: var(--bg-1);
+    color: var(--text-0);
+    font-size: 0.85rem;
+}
+.notice-link { color: var(--accent); font-weight: 700; font-size: 0.8rem; text-align: left; }
+.notice-link:hover { text-decoration: underline; }
+
+/* Coming soon grouped by day */
+.day-group { margin-bottom: 18px; }
+.day-head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 12px;
+    padding: 8px 0;
+    background: #08080c;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.day-head span { color: var(--accent); }
+.day-head::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    margin-left: 8px;
+    background: linear-gradient(90deg, rgba(248, 135, 2, 0.4), transparent);
+}
+
+.empty { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+/* Jump-to highlight and copy states */
+.item-card.highlight { border-color: var(--accent); }
+.copy-btn-mini.copy-error { color: var(--red); }
+
+/* Copied-image caption (only rendered inside the image) */
+.capture-caption { display: none; }
+.item-card.capturing .capture-caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2px 10px;
+    margin-top: 8px;
+    font-size: 0.68rem;
+    color: var(--text-2);
+}
+.item-card.capturing .capture-caption span:first-child { color: var(--accent); font-weight: 700; }
+.item-card.capturing .rating-mine { display: none; }
+.rating-mine { color: var(--accent); }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getLocalLikeStatus, toggleLike } from '../utils/likeService';
 import { useLanguage } from '../contexts/useLanguage';
+import './LikeButton.css';
 
 export default function LikeButton({ offerId, count = 0 }) {
     const { t } = useLanguage();
@@ -20,7 +21,7 @@ export default function LikeButton({ offerId, count = 0 }) {
         const next = !liked;
         if (next) {
             setAnimating(true);
-            setTimeout(() => setAnimating(false), 300);
+            setTimeout(() => setAnimating(false), 600);
         }
         setBusy(true);
         setLiked(next);
@@ -35,16 +36,19 @@ export default function LikeButton({ offerId, count = 0 }) {
     return (
         <button
             type="button"
-            className={`like-btn ${liked ? 'liked' : ''} ${animating ? 'pop' : ''}`}
+            className={`like-btn ${liked ? 'liked' : ''} ${animating ? 'animating' : ''}`}
             onClick={handleClick}
             title={liked ? t('Unlike') : t('Like')}
             aria-label={`${t('Like')} (${shownCount})`}
             aria-pressed={liked}
         >
-            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-            <span>{shownCount}</span>
+            <div className="heart-icon">
+                <svg viewBox="0 0 24 24" fill={liked ? "#ff4081" : "none"} stroke={liked ? "#ff4081" : "currentColor"} strokeWidth="2" aria-hidden="true">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+            </div>
+            <span className="like-count">{shownCount}</span>
+            <div className="hover-label">{t('RECOMMEND')}</div>
         </button>
     );
 }

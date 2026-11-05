@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { getLocalRating, submitRating } from '../utils/ratingService';
 import { useLanguage } from '../contexts/useLanguage';
+import './StarRating.css';
 
 const LABELS = { 1: 'Very bad', 2: 'Bad', 3: 'Okay', 4: 'Good', 5: 'Great' };
 
-// 1-5 stars. The stars always show the community average; your own vote is shown
-// as small text next to it (and left out of copied images).
-// Works as a radio group: one tab stop, arrow keys move, Enter/Space rates.
+// 1-5 stars. The stars always show the community average; your own vote is shown as small
+// text under it (and left out of copied images). Keyboard: one tab stop, arrows move, Enter rates.
 export default function StarRating({ offerId, name, average = 0, count = 0 }) {
     const { t } = useLanguage();
     const [myRating, setMyRating] = useState(() => getLocalRating(offerId));
@@ -34,15 +34,14 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
     };
 
     const shown = hover || average;
-    const focusStar = myRating || 1;
 
     return (
-        <div className="rating" onMouseLeave={() => setHover(0)}>
+        <div className="star-rating-container" title={t('Rate this item')} onMouseLeave={() => setHover(0)}>
             <div
                 ref={groupRef}
                 role="radiogroup"
                 aria-label={`${t('Rate')} ${name}`}
-                className={`rating-stars ${hover ? 'hovering' : ''} ${busy ? 'busy' : ''}`}
+                className={`stars ${busy ? 'rating-loading' : ''}`}
                 onKeyDown={onKeyDown}
                 onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setHover(0); }}
             >
@@ -53,22 +52,22 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
                         role="radio"
                         aria-checked={myRating === star}
                         aria-label={`${star} – ${t(LABELS[star])}`}
-                        tabIndex={star === focusStar ? 0 : -1}
-                        className="rating-star"
-                        style={{ '--fill': Math.max(0, Math.min(1, shown - (star - 1))) }}
+                        tabIndex={star === (myRating || 1) ? 0 : -1}
+                        className={`star ${hover ? '' : 'dim'}`}
+                        style={{ '--fill-percent': `${Math.max(0, Math.min(1, shown - (star - 1))) * 100}%` }}
                         onMouseEnter={() => setHover(star)}
                         onClick={(e) => { e.stopPropagation(); handleRate(star); }}
                     >★</button>
                 ))}
             </div>
-            <span className="rating-text">
+            <div className="rating-stats" style={{ minHeight: '1.2em' }}>
                 {hover
-                    ? t(LABELS[hover])
-                    : <>
-                        {count > 0 ? <><strong>{average.toFixed(1)}</strong> ({count})</> : t('No ratings')}
-                        {myRating !== undefined && <span className="rating-mine"> · {t('you')}: {myRating}★</span>}
-                    </>}
-            </span>
+                    ? <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{t(LABELS[hover])}</span>
+                    : count > 0
+                        ? <><span style={{ color: '#fff', fontWeight: 'bold' }}>{average.toFixed(1)}</span><span style={{ fontSize: '0.65em', marginLeft: '2px', opacity: 0.7 }}>({count})</span></>
+                        : <span style={{ opacity: 0.7 }}>{t('No ratings')}</span>}
+                {!hover && myRating !== undefined && <span className="rating-mine"> · {t('you')}: {myRating}★</span>}
+            </div>
         </div>
     );
 }
