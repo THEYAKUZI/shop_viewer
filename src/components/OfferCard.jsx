@@ -4,6 +4,7 @@ import StarRating from './StarRating';
 import { useLanguage } from '../contexts/useLanguage';
 import { toPng } from 'html-to-image';
 import { modifierName, resolveLevelFormula, titleCase } from '../utils/modifiers';
+import { relativeDay } from '../utils/dates';
 
 function Stars({ level, t }) {
     if (!level || level < 1) return null;
@@ -22,7 +23,7 @@ const downloadBlob = (blob, name) => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
+function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival, compact = false }) {
     const cardRef = useRef(null);
     const { t, locale } = useLanguage();
     const [copyState, setCopyState] = useState('idle');
@@ -37,12 +38,13 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
     const speedKey = `speed:${speedLabel}`;
     const speed = speedLabel ? (t(speedKey) === speedKey ? speedLabel : t(speedKey)) : '—';
     const fmtDate = (iso) => new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
-    const fmtTime = (iso) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
     // Stamped onto copied images so a shared card says when it's in the shop.
+    // UTC, because people reading it on Discord are in different time zones.
+    const utc = (iso) => `${new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}, ${new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC`;
     const caption = offer.isAvailable
-        ? `${t('In shop until')} ${fmtDate(offer.endDate)}, ${fmtTime(offer.endDate)}`
-        : `${t('Arrives')} ${fmtDate(offer.startDate)}, ${fmtTime(offer.startDate)}`;
+        ? `${t('In shop until')} ${utc(offer.endDate)}`
+        : `${t('Arrives')} ${utc(offer.startDate)}`;
 
     const handleCopy = async () => {
         const card = cardRef.current;
@@ -80,7 +82,7 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
     }[copyState];
 
     return (
-        <article ref={cardRef} className="card" id={`offer-${offer.Id}`}>
+        <article ref={cardRef} className={`card ${compact ? 'compact' : ''}`} id={`offer-${offer.Id}`}>
             <header className="card-head">
                 <div className="slot">
                     <img
@@ -107,16 +109,17 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
                             <img src="icons/doober_coin.png" alt={t('coins')} />
                             {Number(item.price).toLocaleString(locale)}
                         </span>
-                        {arrival && <span className="arrival">{fmtDate(arrival)}</span>}
+                        {compact && <span className="price-level">{t('Lv')} {level}</span>}
+                        {arrival && <span className="arrival">{fmtDate(arrival)} · {relativeDay(arrival, t)}</span>}
                     </p>
                 </div>
             </header>
 
-            <dl className="card-stats">
+            {!compact && <dl className="card-stats">
                 <div><dt>{t('Level')}</dt><dd>{level}</dd></div>
                 <div><dt>{t('Power')}</dt><dd>{(detail.WeaponPower || weapon.Power).toLocaleString(locale)}</dd></div>
                 <div><dt>{t('Speed')}</dt><dd>{speed}</dd></div>
-            </dl>
+            </dl>}
 
             {modifiers.length > 0 && (
                 <ul className="card-mods">
@@ -124,7 +127,7 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
                         const desc = modifier.Description ? t(modifier.Description) : null;
                         const shownDesc = desc && resolveLevelFormula(desc, level);
                         return (
-                            <li key={`${modifier.Constant || modifier.Name}-${index}`} className={modifier.isLegendary ? 'legendary' : ''}>
+                            <li key={`${modifier.Constant || modifier.Name}-${index}`} className={modifier.isLegendary ? 'legendary' : ''} title={compact && shownDesc ? shownDesc : undefined}>
                                 {modifier.IconName
                                     ? <img src={`icons/${modifier.IconName}.png`} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
                                     : <span className="mod-icon-placeholder" />}
@@ -133,7 +136,7 @@ function OfferCard({ offer, likeCount = 0, rating, heroes = [], arrival }) {
                                         <span className="mod-name">{modifierName(modifier, t)}</span>
                                         <Stars level={modifier.MODIFIER_LEVEL} t={t} />
                                     </div>
-                                    {shownDesc && <p className="mod-desc" title={shownDesc !== desc ? desc : undefined}>{shownDesc}</p>}
+                                    {shownDesc && !compact && <p className="mod-desc" title={shownDesc !== desc ? desc : undefined}>{shownDesc}</p>}
                                 </div>
                             </li>
                         );

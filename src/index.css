@@ -212,6 +212,13 @@ a { color: inherit; }
 
 .hero-tab.hero-tab-all { padding: 0 16px; }
 
+/* With a mouse there's no easy sideways scroll, so let the heroes wrap onto a second row instead. */
+@media (hover: hover) and (pointer: fine) {
+    .hero-tabs { flex-wrap: wrap; overflow: visible; }
+    .hero-tabs,
+    .hero-tabs.fade-end { -webkit-mask-image: none; mask-image: none; }
+}
+
 .hero-tab:hover { border-color: var(--line-2); color: var(--text); }
 
 .hero-tab.active {
@@ -221,8 +228,9 @@ a { color: inherit; }
 }
 
 .toolbar {
+    position: relative;
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     gap: 10px;
 }
 
@@ -239,8 +247,14 @@ a { color: inherit; }
     transition: border-color 0.15s;
 }
 
-.control:hover,
-.control:focus-within { border-color: rgba(255, 236, 214, 0.24); }
+.control:hover { border-color: rgba(255, 236, 214, 0.24); }
+
+.control:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+.control-btn:focus-visible { outline: none; }
 
 .search input {
     flex: 1;
@@ -253,8 +267,22 @@ a { color: inherit; }
 }
 
 .search input::placeholder { color: var(--text-3); }
+.search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+.search-clear {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-right: -4px;
+    border-radius: 6px;
+    color: var(--text-3);
+}
+
+.search-clear:hover { background: var(--surface-3); color: var(--text); }
 
 .control-btn {
+    min-width: 0;
     font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
@@ -277,7 +305,7 @@ a { color: inherit; }
     text-align: center;
 }
 
-.select { padding-right: 8px; }
+.select { min-width: 0; padding-right: 8px; }
 
 .select-label {
     font-size: 12px;
@@ -292,6 +320,8 @@ a { color: inherit; }
     background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23877c71' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 4px center no-repeat;
     -webkit-appearance: none;
     appearance: none;
+    min-width: 0;
+    text-overflow: ellipsis;
     color: var(--text);
     font-size: 13px;
     font-weight: 500;
@@ -300,14 +330,15 @@ a { color: inherit; }
 
 .select option { background: var(--surface-2); color: var(--text); }
 
-.mod-picker { position: relative; }
+/* The panel is positioned against the whole toolbar so it can never run off-screen. */
+.mod-picker { position: static; min-width: 0; }
 
 .mod-panel {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
     z-index: 20;
-    width: min(680px, calc(100vw - 2 * var(--gutter)));
+    width: min(680px, 100%);
     max-height: min(70vh, 560px);
     overflow-y: auto;
     padding: 16px 16px 0;
@@ -509,6 +540,20 @@ a { color: inherit; }
     font-size: 12.5px;
 }
 
+.notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    margin-top: 28px;
+    padding: 14px 16px;
+    border: 1px solid var(--line-2);
+    border-left: 3px solid var(--gold);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+}
+
 .section-empty {
     display: flex;
     flex-wrap: wrap;
@@ -533,6 +578,7 @@ a { color: inherit; }
     margin-bottom: 12px;
     padding: 10px 0;
     background: var(--bg);
+    box-shadow: 0 10px 12px -10px rgba(0, 0, 0, 0.7);
     font-size: 13px;
     font-weight: 600;
     color: var(--text);
@@ -653,8 +699,9 @@ a { color: inherit; }
 
 .price-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 8px;
+    gap: 2px 8px;
     margin-top: 6px;
 }
 
@@ -672,9 +719,21 @@ a { color: inherit; }
 .price img { width: 17px; height: 17px; }
 
 .arrival {
-    font-size: 12px;
-    color: var(--text-3);
+    flex-basis: 100%;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
 }
+
+.price-level {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+.card.compact { gap: 10px; }
+.card.compact .card-mods li { padding: 5px 0; }
+.card.compact .card-mods li:first-child { padding-top: 2px; }
 
 .card-stats {
     display: grid;
@@ -782,7 +841,7 @@ a { color: inherit; }
     padding: 2px 1px;
     font-size: 15px;
     line-height: 1;
-    color: rgba(255, 236, 214, 0.16);
+    color: rgba(255, 236, 214, 0.32);
 }
 
 .rating-star::before {
@@ -795,7 +854,6 @@ a { color: inherit; }
     color: var(--gold);
 }
 
-.rating-stars.mine .rating-star::before,
 .rating-stars.hovering .rating-star::before { color: var(--gold-2); }
 .rating-stars.busy { opacity: 0.6; pointer-events: none; }
 
@@ -806,6 +864,8 @@ a { color: inherit; }
 }
 
 .rating-text strong { color: var(--text-2); font-weight: 600; }
+.rating-mine { color: var(--gold-2); }
+.card.capturing .rating-mine { display: none; }
 
 .card-actions {
     display: flex;
@@ -861,6 +921,8 @@ a { color: inherit; }
 .card.capturing .capture-caption { display: block; }
 
 /* ---------- Misc ---------- */
+
+.empty strong { color: var(--text); font-weight: 600; }
 
 .empty {
     display: flex;
@@ -948,12 +1010,13 @@ a { color: inherit; }
         padding: 0 var(--gutter);
     }
 
-    .toolbar { grid-template-columns: 1fr 1fr; }
+    .toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
     .toolbar .search { grid-column: 1 / -1; }
     .mod-picker .control-btn { width: 100%; }
-    .mod-panel { left: 0; right: auto; }
-    .select select { flex: 1; min-width: 0; }
+    .select-label, .view-label { display: none; }
+    .select select { flex: 1; }
     .mod-panel-foot span { display: none; }
+    .section-head .meta-sub { display: none; }
 
     .section-head h2 { font-size: 19px; }
     .section-meta { margin-left: 0; width: 100%; flex-wrap: wrap; }

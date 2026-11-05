@@ -4,7 +4,8 @@ import { useLanguage } from '../contexts/useLanguage';
 
 const LABELS = { 1: 'Very bad', 2: 'Bad', 3: 'Okay', 4: 'Good', 5: 'Great' };
 
-// Interactive 1-5 stars. Shows your rating if you rated, otherwise the average.
+// 1-5 stars. The stars always show the community average; your own vote is shown
+// as small text next to it (and left out of copied images).
 // Works as a radio group: one tab stop, arrow keys move, Enter/Space rates.
 export default function StarRating({ offerId, name, average = 0, count = 0 }) {
     const { t } = useLanguage();
@@ -32,8 +33,7 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
         setHover(next + 1);
     };
 
-    const shown = hover || myRating || average;
-    const mine = !hover && myRating !== undefined;
+    const shown = hover || average;
     const focusStar = myRating || 1;
 
     return (
@@ -42,7 +42,7 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
                 ref={groupRef}
                 role="radiogroup"
                 aria-label={`${t('Rate')} ${name}`}
-                className={`rating-stars ${mine ? 'mine' : ''} ${hover ? 'hovering' : ''} ${busy ? 'busy' : ''}`}
+                className={`rating-stars ${hover ? 'hovering' : ''} ${busy ? 'busy' : ''}`}
                 onKeyDown={onKeyDown}
                 onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setHover(0); }}
             >
@@ -64,9 +64,10 @@ export default function StarRating({ offerId, name, average = 0, count = 0 }) {
             <span className="rating-text">
                 {hover
                     ? t(LABELS[hover])
-                    : count > 0
-                        ? <><strong>{average.toFixed(1)}</strong> ({count})</>
-                        : t('No ratings')}
+                    : <>
+                        {count > 0 ? <><strong>{average.toFixed(1)}</strong> ({count})</> : t('No ratings')}
+                        {myRating !== undefined && <span className="rating-mine"> · {t('you')}: {myRating}★</span>}
+                    </>}
             </span>
         </div>
     );

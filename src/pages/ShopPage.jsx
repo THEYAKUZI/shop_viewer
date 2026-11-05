@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import OfferCard from '../components/OfferCard';
@@ -8,6 +8,7 @@ import { parseGameMaster, parseHeroes } from '../utils/parser';
 import { subscribeToAllLikes } from '../utils/likeService';
 import { subscribeToAllRatings } from '../utils/ratingService';
 import { modifierName } from '../utils/modifiers';
+import { relativeDay } from '../utils/dates';
 import VisitorStats from '../components/VisitorStats';
 import LanguageSelector from '../components/LanguageSelector';
 import { useLanguage } from '../contexts/useLanguage';
@@ -18,20 +19,20 @@ const DAYS_STEP = 7;
 const FILTERED_PAGE = 24;    // filtered "Coming soon" results per "Show more"
 
 const HERO_ORDER = { 'Berserker': 1, 'Ranger': 2, 'Sorcerer': 3, 'Chef': 4, 'Battle Chef': 5, 'Vampire Hunter': 6, 'Ghost Samurai': 7, 'Pyromancer': 8, 'Dragon Knight': 9 };
-const SORT_MODES = ['popular', 'rating', 'price-low', 'price-high'];
+const SORT_MODES = ['popular', 'rating', 'price-low', 'power'];
+const COMPACT_KEY = 'rampage_compact_cards';
 
 const offerPrice = (offer) => offer.items[0]?.price ?? 0;
+const offerPower = (offer) => { const item = offer.items[0]; return item?.detail?.WeaponPower || item?.weapon?.Power || 0; };
+// Average pulled toward 3 stars until an item has a few votes, so one 5-star vote doesn't top the list.
+const ratingScore = (r) => (r ? (r.sum + 9) / (r.count + 3) : 3);
 
 // Comparators for the sort menu. Each receives the like and rating maps.
 const SORTERS = {
     popular: ({ likes }) => (a, b) => (likes[b.Id] || 0) - (likes[a.Id] || 0),
-    rating: ({ ratings }) => (a, b) => {
-        const ra = ratings[a.Id] || { average: 0, count: 0 };
-        const rb = ratings[b.Id] || { average: 0, count: 0 };
-        return (rb.average - ra.average) || (rb.count - ra.count);
-    },
+    rating: ({ ratings }) => (a, b) => (ratingScore(ratings[b.Id]) - ratingScore(ratings[a.Id])) || ((ratings[b.Id]?.count || 0) - (ratings[a.Id]?.count || 0)),
     'price-low': () => (a, b) => offerPrice(a) - offerPrice(b),
-    'price-high': () => (a, b) => offerPrice(b) - offerPrice(a),
+    power: () => (a, b) => offerPower(b) - offerPower(a),
 };
 
 // Turns the game data into the shop sections plus the hero and modifier filter options.
@@ -72,12 +73,6 @@ function groupByDate(offers) {
     return [...groups.entries()];
 }
 
-// Whole calendar days from today (local time) until the given date.
-const daysFromToday = (iso) => {
-    const d = new Date(iso), now = new Date();
-    return Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
-};
-
 function Section({ id, title, count, meta, note, children, live, locale }) {
     return (
         <section className="shop-section" id={id}>
@@ -115,11 +110,20 @@ function ShopPage() {
     const [visibleDays, setVisibleDays] = useState(INITIAL_DAYS);
     const [visibleFiltered, setVisibleFiltered] = useState(FILTERED_PAGE);
     const heroTabsRef = useRef(null);
+    const [compact, setCompact] = useState(() => {
+        try { return localStorage.getItem(COMPACT_KEY) === '1'; } catch { return false; }
+    });
+    const toggleCompact = () => setCompact(c => {
+        try { localStorage.setItem(COMPACT_KEY, c ? '0' : '1'); } catch { /* not remembered */ }
+        return !c;
+    });
 
     // Filters live in the URL so a shared link opens the same view.
     const heroParam = searchParams.get('hero') || '';
     const selectedModifiers = useMemo(() => (searchParams.get('mods') || '').split(',').filter(Boolean), [searchParams]);
-    const searchQuery = searchParams.get('q') || '';
+    // The search box keeps its own text (so fast typing never loses letters) and is copied to the URL after a short pause.
+    const [searchInput, setSearchInput] = useState(() => searchParams.get('q') || '');
+    const searchQuery = useDeferredValue(searchInput);
     const sortMode = SORT_MODES.includes(searchParams.get('sort')) ? searchParams.get('sort') : 'popular';
     const selectedHero = heroes.find(h => h.constant.toLowerCase() === heroParam) || null;
 
@@ -135,7 +139,15 @@ function ShopPage() {
     };
     const selectHero = (hero) => updateParams({ hero: hero ? hero.constant.toLowerCase() : '' });
     const setModifiers = (mods) => updateParams({ mods: mods.join(',') });
-    const clearFilters = () => updateParams({ hero: '', mods: '', q: '' });
+    const clearFilters = () => { setSearchInput(''); updateParams({ hero: '', mods: '', q: '' }); };
+
+    useEffect(() => {
+        const id = setTimeout(() => {
+            const current = new URLSearchParams(window.location.hash.split('?')[1] || '').get('q') || '';
+            if (current !== searchInput.trim()) updateParams({ q: searchInput.trim() });
+        }, 250);
+        return () => clearTimeout(id);
+    }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps -- updateParams only reads the live URL
 
     const applyShopData = useCallback((json) => {
         const state = buildShopState(json);
@@ -186,11 +198,30 @@ function ShopPage() {
         return map;
     }, [heroes]);
 
+    // Searchable text per offer: names, weapon type, heroes who can use it, and modifier names (English + current language).
+    const searchText = useMemo(() => {
+        const identity = (x) => x;
+        const map = new Map();
+        [...data.available, ...data.upcoming, ...data.comingSoon].forEach(offer => {
+            const parts = [offer.name];
+            offer.items.forEach(item => {
+                parts.push(item.aesthetic?.Name, item.weapon?.Name);
+                (heroesByType[item.weapon?.Mastertype] || []).forEach(h => parts.push(h.name));
+                (item.modifiers || []).forEach(m => parts.push(modifierName(m, identity), modifierName(m, t)));
+            });
+            map.set(offer.Id, parts.filter(Boolean).join(' ').toLowerCase());
+        });
+        return map;
+    }, [data, heroesByType, t]);
+
     const filtered = useMemo(() => {
-        const q = searchQuery.trim().toLowerCase();
+        const words = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
         const matches = (offer) => {
             if (!offer.items || offer.items.length === 0) return false;
-            if (q && !offer.items.some(item => (offer.name || '').toLowerCase().includes(q) || (item.aesthetic?.Name || '').toLowerCase().includes(q) || (item.weapon?.Name || '').toLowerCase().includes(q))) return false;
+            if (words.length > 0) {
+                const text = searchText.get(offer.Id) || '';
+                if (!words.every(w => text.includes(w))) return false;
+            }
             return offer.items.some(item => {
                 if (!item.weapon) return false;
                 if (selectedHero && !selectedHero.allowedTypes.includes(item.weapon.Mastertype)) return false;
@@ -214,7 +245,7 @@ function ShopPage() {
             comingSoonDays,
             comingSoon: comingSoonDays.flatMap(([, offers]) => offers),
         };
-    }, [allLikes, allRatings, data, searchQuery, selectedHero, selectedModifiers, sortMode]);
+    }, [allLikes, allRatings, data, searchQuery, searchText, selectedHero, selectedModifiers, sortMode]);
 
     // "Next match" links reveal the card first if it is beyond what is shown, then scroll to it.
     const jumpTo = (offer) => {
@@ -229,12 +260,7 @@ function ShopPage() {
 
     const fmtDay = (iso) => new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
     const fmtTime = (iso) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-    const relDay = (iso) => {
-        const n = daysFromToday(iso);
-        if (n <= 0) return t('today');
-        if (n === 1) return t('tomorrow');
-        return t('in {n} days').replace('{n}', n);
-    };
+    const relDay = (iso) => relativeDay(iso, t);
 
     if (loading) {
         return (
@@ -260,7 +286,32 @@ function ShopPage() {
     const nextRotation = data.upcoming[0]?.startDate;
     const filtersActive = !!selectedHero || selectedModifiers.length > 0 || searchQuery.trim() !== '';
     const futureMatches = [...filtered.upcoming, ...filtered.comingSoon];
-    const nextMatch = futureMatches[0];
+    const nothingMatches = filtersActive && filtered.available.length + futureMatches.length === 0;
+    const exportedAt = rawJson?.Exported ? new Date(rawJson.Exported * 1000) : null;
+
+    // With filters on, empty sections are hidden and replaced by one line that says when the next match arrives.
+    let notice = null;
+    if (filtersActive && !nothingMatches && filtered.available.length === 0) {
+        if (filtered.upcoming.length > 0) {
+            notice = <p className="notice">{t('Not in the shop today.')}</p>;
+        } else {
+            const next = filtered.comingSoon[0];
+            notice = (
+                <p className="notice">
+                    {t('Not in the shop today or next rotation.')}
+                    <button type="button" className="link-btn" onClick={() => jumpTo(next)}>
+                        {t('Next')}: {next.name} · {fmtDay(next.startDate)} ({relDay(next.startDate)})
+                    </button>
+                </p>
+            );
+        }
+    }
+
+    const filterSummary = [
+        selectedHero?.name,
+        ...selectedModifiers.map(key => t(modifierOptions.find(o => o.value === key)?.label || key.split('|')[1])),
+        searchQuery.trim() && `"${searchQuery.trim()}"`,
+    ].filter(Boolean).join(' · ');
 
     const card = (offer, arrival) => (
         <OfferCard
@@ -270,22 +321,16 @@ function ShopPage() {
             rating={allRatings[offer.Id]}
             heroes={heroesByType[offer.items[0]?.weapon?.Mastertype]}
             arrival={arrival}
+            compact={compact}
         />
-    );
-
-    const emptyLine = (text, target) => (
-        <p className="section-empty">
-            {text}
-            {target && (
-                <button type="button" className="link-btn" onClick={() => jumpTo(target)}>
-                    {t('Next match')}: {target.name} · {fmtDay(target.startDate)} ({relDay(target.startDate)})
-                </button>
-            )}
-        </p>
     );
 
     const shownDays = filtered.comingSoonDays.slice(0, visibleDays);
     const shownFiltered = filtered.comingSoon.slice(0, visibleFiltered);
+    const showLive = data.available.length > 0 && filtered.available.length > 0;
+    const showNext = data.upcoming.length > 0 && filtered.upcoming.length > 0;
+    const showComing = data.comingSoon.length > 0 && filtered.comingSoon.length > 0;
+    const daysShownText = t('{a} of {b} days shown').replace('{a}', shownDays.length).replace('{b}', filtered.comingSoonDays.length);
 
     return (
         <div className="app">
@@ -326,27 +371,48 @@ function ShopPage() {
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                             <input
                                 type="search"
-                                placeholder={t('Search weapons...')}
-                                value={searchQuery}
-                                onChange={(e) => updateParams({ q: e.target.value })}
-                                aria-label={t('Search weapons...')}
+                                placeholder={t('Search weapons, heroes, modifiers...')}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                aria-label={t('Search weapons, heroes, modifiers...')}
                             />
+                            {searchInput && (
+                                <button type="button" className="search-clear" onClick={() => setSearchInput('')} aria-label={t('Clear search')}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                                </button>
+                            )}
                         </label>
                         <ModifierPicker options={modifierOptions} selected={selectedModifiers} onChange={setModifiers} />
                         <label className="control select">
                             <span className="select-label">{t('Sort')}</span>
-                            <select value={sortMode} onChange={(e) => updateParams({ sort: e.target.value === 'popular' ? '' : e.target.value })}>
+                            <select value={sortMode} onChange={(e) => updateParams({ sort: e.target.value === 'popular' ? '' : e.target.value })} aria-label={t('Sort')}>
                                 <option value="popular">{t('Most liked')}</option>
                                 <option value="rating">{t('Top rated')}</option>
-                                <option value="price-low">{t('Price: low to high')}</option>
-                                <option value="price-high">{t('Price: high to low')}</option>
+                                <option value="power">{t('Highest power')}</option>
+                                <option value="price-low">{t('Cheapest first')}</option>
                             </select>
                         </label>
+                        <button
+                            type="button"
+                            className={`control control-btn view-toggle ${compact ? 'has-value' : ''}`}
+                            onClick={toggleCompact}
+                            aria-pressed={compact}
+                            title={t('Compact cards: hide stats and modifier descriptions')}
+                        >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                {compact
+                                    ? <><rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" /></>
+                                    : <path d="M4 6h16M4 12h16M4 18h16" />}
+                            </svg>
+                            <span className="view-label">{t('Compact')}</span>
+                        </button>
                     </div>
                     <SelectedModifiers options={modifierOptions} selected={selectedModifiers} onChange={setModifiers} />
                 </div>
 
-                {(data.available.length > 0) && (filtered.available.length > 0 || filtersActive) && (
+                {notice}
+
+                {showLive && (
                     <Section
                         live
                         locale={locale}
@@ -361,26 +427,22 @@ function ShopPage() {
                             </>
                         )}
                     >
-                        {filtered.available.length > 0
-                            ? <div className="grid">{filtered.available.map(offer => card(offer))}</div>
-                            : emptyLine(t('No live weapons match.'), nextMatch)}
+                        <div className="grid">{filtered.available.map(offer => card(offer))}</div>
                     </Section>
                 )}
 
-                {data.upcoming.length > 0 && (filtered.upcoming.length > 0 || filtersActive) && (
+                {showNext && (
                     <Section
                         locale={locale}
                         title={t('Next rotation')}
                         count={filtered.upcoming.length}
                         meta={nextRotation && <span className="meta-sub">{t('Starts')} {fmtDay(nextRotation)}, {fmtTime(nextRotation)} · {relDay(nextRotation)}</span>}
                     >
-                        {filtered.upcoming.length > 0
-                            ? <div className="grid">{filtered.upcoming.map(offer => card(offer))}</div>
-                            : emptyLine(t('None in the next rotation.'), filtered.comingSoon[0])}
+                        <div className="grid">{filtered.upcoming.map(offer => card(offer))}</div>
                     </Section>
                 )}
 
-                {data.comingSoon.length > 0 && (filtered.comingSoon.length > 0 || filtersActive) && (
+                {showComing && (
                     <Section
                         id="coming-soon"
                         locale={locale}
@@ -388,8 +450,6 @@ function ShopPage() {
                         count={filtered.comingSoon.length}
                         note={t('Read from the game files. The developers can change future rotations before they go live.')}
                     >
-                        {filtered.comingSoon.length === 0 && emptyLine(t('No future rotations match.'))}
-
                         {filtersActive ? (
                             // Filtered results are sparse, so one grid with dates on the cards reads better than a row per day.
                             <>
@@ -410,7 +470,7 @@ function ShopPage() {
                                 ))}
                                 {filtered.comingSoonDays.length > shownDays.length && (
                                     <button type="button" className="more-btn" onClick={() => setVisibleDays(d => d + DAYS_STEP)}>
-                                        {t('Show next 7 days')} <span>({shownDays.length} / {filtered.comingSoonDays.length} {t('days')})</span>
+                                        {t('Show next 7 days')} <span>({daysShownText})</span>
                                     </button>
                                 )}
                             </>
@@ -421,9 +481,9 @@ function ShopPage() {
                 {!filtersActive && data.available.length + data.upcoming.length + data.comingSoon.length === 0 && (
                     <div className="empty"><p>{t('No weapons currently available.')}</p></div>
                 )}
-                {filtersActive && filtered.available.length + futureMatches.length === 0 && (
+                {nothingMatches && (
                     <div className="empty">
-                        <p>{t('No weapons match these filters.')}</p>
+                        <p>{t('No weapons match')}: <strong>{filterSummary}</strong></p>
                         <button type="button" className="control control-btn" onClick={clearFilters}>{t('Clear filters')}</button>
                     </div>
                 )}
@@ -432,6 +492,8 @@ function ShopPage() {
             <footer className="site-footer">
                 <div className="container footer-inner">
                     <span className="footer-brand">Rampage Armory</span>
+                    <span>{t('Unofficial fan site')}</span>
+                    {exportedAt && <span>{t('Shop data from the game files, exported')} {exportedAt.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
                     <span><VisitorStats /> {t('visits')}</span>
                     <span>Assets © Dungeon Rampage, ported by Gamebreaking Studios Inc. Certain rights reserved.</span>
                     <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>

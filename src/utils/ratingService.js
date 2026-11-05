@@ -26,7 +26,7 @@ const setLocalRating = (id, rating) => {
     }
 };
 
-// Streams every offer's rating totals as { [offerId]: { average, count } }.
+// Streams every offer's rating totals as { [offerId]: { average, count, sum } }.
 export const subscribeToAllRatings = (onUpdate) => {
     if (!db) {
         onUpdate({});
@@ -37,7 +37,7 @@ export const subscribeToAllRatings = (onUpdate) => {
         Object.entries(snapshot.val() || {}).forEach(([id, val]) => {
             const count = (val && val.count) || 0;
             const sum = (val && val.sum) || 0;
-            all[id] = { count, average: count > 0 ? Math.round((sum / count) * 10) / 10 : 0 };
+            all[id] = { count, sum, average: count > 0 ? Math.round((sum / count) * 10) / 10 : 0 };
         });
         onUpdate(all);
     });
