@@ -165,8 +165,14 @@ function ShopPage() {
         const update = () => {
             row.classList.toggle('fade-end', row.scrollWidth - row.scrollLeft - row.clientWidth > 2);
         };
+        // Scroll the row sideways only; scrollIntoView would also move the page vertically.
+        const active = row.querySelector('.hero-tab.active');
+        if (active) {
+            const r = row.getBoundingClientRect(), a = active.getBoundingClientRect();
+            if (a.right > r.right) row.scrollLeft += a.right - r.right + 24;
+            else if (a.left < r.left) row.scrollLeft -= r.left - a.left + 24;
+        }
         update();
-        row.querySelector('.hero-tab.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
         row.addEventListener('scroll', update, { passive: true });
         const ro = new ResizeObserver(update);
         ro.observe(row);
