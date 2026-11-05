@@ -5,7 +5,7 @@ import { getAnalytics } from "firebase/analytics";
 // Firebase web config. These values are public identifiers, not secrets:
 // access is controlled by the Realtime Database rules (database.rules.json).
 const firebaseConfig = {
-    apiKey: "AIzaSyCkVqu6VoOuIvkBPVm0zqnHQgGCcldgFro",
+    apiKey: "AIzaSyCkVqu6VoOuIvkBPVm0zqmHQgGCcldgFro",
     authDomain: "rampagearmory.firebaseapp.com",
     projectId: "rampagearmory",
     storageBucket: "rampagearmory.firebasestorage.app",
